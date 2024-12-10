@@ -1,7 +1,7 @@
-function renderHomePage(req, res){
-    res.render('homepage');
+function renderGetStarted(req, res){
+    res.render('getStartedPage');
 }
 
 module.exports = {
-    renderHomePage
-}
+  renderGetStarted,
+};
