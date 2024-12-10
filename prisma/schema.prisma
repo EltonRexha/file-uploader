@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,117 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String
+  password      String
+  firstName     String          @map("first_name")
+  lastName      String          @map("last_name")
+  role          Role            @default(USER)
+  status        Status          @default(ACTIVE)
+  Workspaces    Workspace[]
+  activity      Activity[]
+  WorkspaceLink WorkspaceLink[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id            String          @id @default(uuid())
+  user          User            @relation(fields: [userId], references: [id])
+  userId        String          @map("user_id")
+  views         Int             @default(0)
+  folder        Folder[]
+  WorkspaceLink WorkspaceLink[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceLink {
+  id          String    @id @default(uuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String    @map("workspace_id")
+  join_code   String
+  userAdmin   User      @relation(fields: [userAdminId], references: [id])
+  userAdminId String    @map("user_admin_id")
+
+  @@map("workspace_links")
+}
+
+model Folder {
+  id             String     @id @default(uuid())
+  name           String
+  workspace      Workspace  @relation(fields: [workspaceId], references: [id])
+  workspaceId    String     @map("workspace_id")
+  childFolders   Folder[]   @relation("folders")
+  parentFolder   Folder?    @relation("folders", fields: [parentFolderId], references: [id])
+  parentFolderId String?    @map("parent_folder_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  path           String
+  files          File[]
+  activity       Activity[]
+
+  @@map("folders")
+}
+
+model File {
+  id        String    @id @default(uuid())
+  name      String
+  extension Extension @default(UNKNOWN)
+  byte_size Int
+  path      String
+  folder    Folder    @relation(fields: [folderId], references: [id])
+  folderId  String    @map("folder_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("files")
+}
+
+model Activity {
+  id       String       @id @default(uuid())
+  activity ActivityType
+  folder   Folder       @relation(fields: [folderId], references: [id])
+  user     User         @relation(fields: [userId], references: [id])
+  folderId String       @map("folder_id")
+  userId   String       @map("user_id")
+
+  @@map("activities")
+}
+
+enum ActivityType {
+  DOWNLOAD
+  UPLOAD
+}
+
+enum Extension {
+  UNKNOWN
+  TXT
+  PDF
+  DOCX
+  XLSX
+  PNG
+  JPG
+  GIF
+  MP4
+  MP3
+  ZIP
+  JSON
+  XML
+  HTML
+  CSS
+  JS
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Status {
+  ACTIVE
+  BANNED
 }
