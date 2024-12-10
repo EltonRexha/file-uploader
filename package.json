@@ -1,9 +1,11 @@
 {
   "name": "file-uploader",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon ./src/index.js",
+    "watch-build-css": "npx tailwindcss -i ./src/public/css/index.css -o ./src/public/css/main.css --watch",
+    "build": "npx tailwindcss -i ./src/public/css/index.css -o ./src/public/css/main.css && node app.js"
   },
   "keywords": [],
   "author": "elton <elton.rexha123@example.com>",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.7",
-    "prisma": "^6.0.1"
+    "prisma": "^6.0.1",
+    "tailwindcss": "^3.4.16"
   }
 }

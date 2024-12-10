@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <title>Document</title>
+  </head>
+  <body class="bg-zinc-800">
+    <%-include('./partials/getStartedNavbar.ejs')%>
+    <div class="flex justify-center items-center gap-3 text-white min-h-[80vh]">
+      <div class="flex items-baseline gap-4">
+        <h1 class="text-3xl border-r-2 border-white pr-4 font-bold">
+          Welcome to file uploader
+        </h1>
+        <p class="text-zinc-200" id="upload">Upload</p>
+      </div>
+    </div>
+    <script>
+      const extensions = [
+        'Txt',
+        'Pdf',
+        'Docx',
+        'Xlsx',
+        'Png',
+        'Jpg',
+        'Gif',
+        'Mp4',
+        'Mp3',
+        'Zip',
+        'Json',
+        'Xml',
+        'Html',
+        'Css',
+        'Js',
+      ];
+
+      let currentExtensionIndex = 0;
+
+      const uploadParagraph = document.querySelector('#upload');
+
+      function renderNextExtension() {
+        const oldSpanElement = uploadParagraph.querySelector('span');
+        if (oldSpanElement) {
+          oldSpanElement.remove();
+        }
+        const newSpanElement = document.createElement('span');
+        newSpanElement.className =
+          'ml-2 inline-block animate-slideTopBottom text-emerald-300 font-bold';
+        newSpanElement.textContent = extensions[currentExtensionIndex];
+        uploadParagraph.appendChild(newSpanElement);
+
+        currentExtensionIndex = (currentExtensionIndex + 1) % extensions.length;
+      }
+
+      setInterval(() => {
+        renderNextExtension();
+      }, 1000);
+
+      renderNextExtension();
+    </script>
+  </body>
+</html>
