@@ -6,14 +6,14 @@
     <link rel="stylesheet" href="/css/main.css" />
     <title>Document</title>
   </head>
-  <body class="bg-zinc-800">
+  <body class="bg-zinc-300">
     <%-include('./partials/getStartedNavbar.ejs')%>
-    <div class="flex justify-center items-center gap-3 text-white min-h-[80vh]">
+    <div class="flex justify-center items-center gap-3 text-gray-800 min-h-[80vh]">
       <div class="flex items-baseline gap-4">
-        <h1 class="text-3xl border-r-2 border-white pr-4 font-bold">
+        <h1 class="text-3xl border-r-2 border-black pr-4 font-bold font-mono">
           Welcome to file uploader
         </h1>
-        <p class="text-zinc-200" id="upload">Upload</p>
+        <p class="text-zinc-600 w-28" id="upload">Upload</p>
       </div>
     </div>
     <script>
@@ -46,7 +46,7 @@
         }
         const newSpanElement = document.createElement('span');
         newSpanElement.className =
-          'ml-2 inline-block animate-slideTopBottom text-emerald-300 font-bold';
+          'ml-2 inline-block animate-slideTopBottom text-emerald-700 font-bold';
         newSpanElement.textContent = extensions[currentExtensionIndex];
         uploadParagraph.appendChild(newSpanElement);
 
