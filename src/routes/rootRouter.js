@@ -1,4 +1,4 @@
-const {Router} = require('express');
+const { Router } = require('express');
 const { renderGetStarted } = require('../controllers/rootController');
 const router = Router();
 
