@@ -1,4 +1,8 @@
-const { prismaClient } = require('@prisma/client');
-const prisma = new prismaClient();
+const { PrismaClient } = require('@prisma/client');
 
-module.exports = { prisma };
+/**
+ * @type {import('@prisma/client').PrismaClient}
+ */
+const prisma = new PrismaClient();
+
+module.exports = prisma;

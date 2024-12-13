@@ -7,6 +7,7 @@ const passport = require('passport');
 const indexRouter = require('./routes/indexRouter');
 const authRouter = require('./routes/authRouter');
 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
