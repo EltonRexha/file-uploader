@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <title>File uploader | Log-in</title>
+  </head>
+  <body class="bg-zinc-100 text-gray-900 font-sans max-w-[1800px] mx-auto">
+    <%-include('partials/getStartedNavbar.ejs')%>
+    <div
+      class="flex flex-col lg:flex-row items-center justify-center min-h-screen"
+    >
+      <form
+        class="bg-gray-50 pt-20 w-full relative min-h-screen lg:w-1/2 shadow-lg rounded-lg"
+        method="post"
+        action="/log-in"
+        novalidate
+      >
+        <div class="w-[50%] mx-auto mt-20">
+          <div class="relative z-0 w-full mb-5 group">
+            <input
+              type="email"
+              name="email"
+              id="email"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+              placeholder="Email address"
+              required
+            />
+            <label
+              for="email"
+              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+            >
+              Email address
+            </label>
+          </div>
+          <div class="relative z-0 w-full mb-5 group">
+            <input
+              type="password"
+              name="password"
+              id="password"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+              placeholder="Password"
+              required
+            />
+            <label
+              for="password"
+              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+            >
+              Password
+            </label>
+          </div>
+         
+        
+          <p class="text-zinc-700 text-sm">
+            Do not have an account yet?
+            <a href="/sign-up" class="font-semibold hover:underline"
+              >Signup here</a
+            >
+          </p>
+          <% if(locals.errors){%>
+          <div class="mt-10 mb-10">
+            <ul class="text-red-400">
+              <% locals.errors.forEach(({msg}) => {%>
+              <li><%=msg%></li>
+              <%}) %>
+            </ul>
+          </div>
+
+          <%} %>
+          <button
+            type="submit"
+            class="text-white lg:absolute lg:bottom-0 lg:right-0 lg:mr-5 lg:mb-5 bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm w-full sm:w-32 px-5 py-2.5 text-center transition-all duration-200"
+          >
+            Login
+          </button>
+        </div>
+      </form>
+      <div class="hidden lg:block w-full h-screen md:w-1/2">
+        <img
+          src="/images/imgs/sign-up-background.jpg"
+          alt="Placeholder"
+          class="w-full h-full object-cover"
+        />
+      </div>
+    </div>
+  </body>
+</html>

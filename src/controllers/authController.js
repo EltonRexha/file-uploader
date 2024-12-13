@@ -82,7 +82,13 @@ async function createAccount(req, res) {
   res.redirect('/');
 }
 
+//login logic
+function getLoginPage(req, res){
+    res.render('login')
+}
+
 module.exports = {
   getSignUpPage,
+  getLoginPage,
   createAccount: [createAccountSchema, createAccount],
 };
