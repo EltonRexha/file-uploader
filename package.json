@@ -9,10 +9,14 @@
   },
   "keywords": [],
   "author": "elton <elton.rexha123@example.com>",
+  "prisma": {
+    "schema": "src/prisma/schema.prisma"
+  },
   "license": "MIT",
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.0.1",
+    "@quixo3/prisma-session-store": "^3.1.13",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
