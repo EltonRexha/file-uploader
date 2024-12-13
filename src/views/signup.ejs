@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css">
+    <title>Document</title>
+  </head>
+  <body class="bg-zinc-100 text-gray-900 font-sans max-w-[1800px] mx-auto">
+    <%-include('partials/getStartedNavbar.ejs')%>
+    <div
+      class="flex flex-col lg:flex-row items-center justify-center min-h-screen"
+    >
+      <form
+        class="bg-gray-50 pt-20 w-full relative h-screen lg:w-1/2 shadow-lg rounded-lg"
+        method="post"
+        action="/sign-up"
+      >
+        <div class="w-[70%] mx-auto mt-20">
+          <div class="relative z-0 w-full mb-5 group">
+            <input
+              type="email"
+              name="email"
+              id="email"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+              placeholder="Email address"
+              required
+            />
+            <label
+              for="email"
+              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+            >
+              Email address
+            </label>
+          </div>
+          <div class="relative z-0 w-full mb-5 group">
+            <input
+              type="password"
+              name="password"
+              id="password"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+              placeholder="Password"
+              required
+            />
+            <label
+              for="password"
+              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+            >
+              Password
+            </label>
+          </div>
+          <div class="relative z-0 w-full mb-5 group">
+            <input
+              type="password"
+              name="confirm_password"
+              id="confirm_password"
+              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+              placeholder="Confirm password"
+              required
+            />
+            <label
+              for="confirm_password"
+              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+            >
+              Confirm password
+            </label>
+          </div>
+          <div class="grid md:grid-cols-2 md:gap-6">
+            <div class="relative z-0 w-full mb-5 group">
+              <input
+                type="text"
+                name="first_name"
+                id="first_name"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+                placeholder="First name"
+                required
+              />
+              <label
+                for="first_name"
+                class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+              >
+                First name
+              </label>
+            </div>
+            <div class="relative z-0 w-full mb-5 group">
+              <input
+                type="text"
+                name="last_name"
+                id="last_name"
+                class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
+                placeholder="Last name"
+                required
+              />
+              <label
+                for="last_name"
+                class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
+              >
+                Last name
+              </label>
+            </div>
+          </div>
+          <p class="text-zinc-700 text-sm">Already have an account? <a href="/log-in" class="font-semibold hover:underline">Login here</a></p>
+          <button
+            type="submit"
+            class="text-white lg:absolute lg:bottom-0 lg:right-0 lg:mr-5 lg:mb-5 bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm w-full sm:w-32 px-5 py-2.5 text-center transition-all duration-200"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+      <div class="hidden lg:block w-full h-screen md:w-1/2">
+        <img
+          src="/images/imgs/sign-up-background.jpg"
+          alt="Placeholder"
+          class="w-full h-full object-cover"
+        />
+      </div>
+    </div>
+  </body>
+</html>

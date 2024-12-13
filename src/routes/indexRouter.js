@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { renderGetStarted } = require('../controllers/rootController');
+const { renderGetStarted } = require('../controllers/indexController');
 const router = Router();
 
 router.get('/', renderGetStarted);

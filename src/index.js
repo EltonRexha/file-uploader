@@ -4,7 +4,8 @@ const app = express();
 const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
-const rootRouter = require('./routes/rootRouter');
+const indexRouter = require('./routes/indexRouter');
+const authRouter = require('./routes/authRouter');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
@@ -21,7 +22,8 @@ app.use(passport.session());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use('/', rootRouter);
+app.use('/', indexRouter);
+app.use('/', authRouter);
 
 const PORT = process.env.port || 3000;
 app.listen(PORT, () => {
