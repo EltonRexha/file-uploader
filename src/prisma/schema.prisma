@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id            String          @id @default(uuid())
-  email         String
+  email         String          @unique
   password      String
   firstName     String          @map("first_name")
   lastName      String          @map("last_name")
@@ -84,6 +84,13 @@ model Activity {
   userId   String       @map("user_id")
 
   @@map("activities")
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
 }
 
 enum ActivityType {
