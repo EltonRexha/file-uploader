@@ -59,7 +59,7 @@ passport.deserializeUser(async (id, done) => {
 
 function getSignUpPage(req, res) {
   if (req.user) {
-    res.redirect('/home');
+    res.redirect('/');
     return;
   }
 
@@ -137,7 +137,7 @@ async function createAccount(req, res) {
 //login logic
 function getLoginPage(req, res) {
   if (req.user) {
-    res.redirect('/home');
+    res.redirect('/');
     return;
   }
 
@@ -161,7 +161,7 @@ function postLogin(req, res, next) {
         next(err);
       }
 
-      res.redirect('/');
+      res.redirect('/log-in');
     });
   })(req, res, next);
 }

@@ -1,6 +1,6 @@
 function renderGetStarted(req, res) {
   if (req.user) {
-    res.redirect('/home');
+    res.redirect('/dashboard/home');
     return;
   }
   res.render('getStartedPage');

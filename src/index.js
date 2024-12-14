@@ -40,9 +40,13 @@ app.use('/dashboard', dashboardRouter);
 app.use((req, res, next) => {
   const httpError = new HttpError('Resource not found', 404);
   next(httpError);
-})
+});
 
 app.use((err, req, res, next) => {
+  if (!err instanceof HttpError) {
+    err = new HttpError('Something happened wrong in our side', 500);
+  }
+
   res.render('error', { httpCode: err.httpCode, description: err.message });
 });
 
