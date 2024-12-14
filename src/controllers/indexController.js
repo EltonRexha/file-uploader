@@ -1,6 +1,9 @@
-function renderGetStarted(req, res){
-    console.log(req.user);
-    res.render('getStartedPage');
+function renderGetStarted(req, res) {
+  if (req.user) {
+    res.redirect('/dashboard/home');
+    return;
+  }
+  res.render('getStartedPage');
 }
 
 module.exports = {
