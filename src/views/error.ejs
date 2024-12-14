@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oopsies</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 h-screen flex items-center justify-center">
+    <section>
+      <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+        <div class="mx-auto max-w-screen-sm text-center">
+          <div class="flex items-baseline gap-3">
+            <h1
+              class="mb-4 text-7xl tracking-tight font-extrabold pr-2 lg:text-7xl text-primary-600"
+            >
+              Oopsies...
+            </h1>
+            <p
+              class="mb-4 text-3xl tracking-tight font-bold text-red-500 md:text-4xl"
+            >
+              <%=locals.httpCode%>
+            </p>
+          </div>
+          <p class="mb-4 text-lg font-light text-gray-500">
+            <%=locals.description%>
+          </p>
+          <a
+            href="/"
+            class="inline-flex text-blue-600 bg-white rounded-sm bg-primary-600 font-medium text-sm px-5 py-2.5 text-center my-4"
+            >Back to Homepage</a
+          >
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

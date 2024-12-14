@@ -58,6 +58,11 @@ passport.deserializeUser(async (id, done) => {
 });
 
 function getSignUpPage(req, res) {
+  if (req.user) {
+    res.redirect('/home');
+    return;
+  }
+
   res.render('signup.ejs');
 }
 
@@ -131,6 +136,11 @@ async function createAccount(req, res) {
 
 //login logic
 function getLoginPage(req, res) {
+  if (req.user) {
+    res.redirect('/home');
+    return;
+  }
+
   res.render('login');
 }
 
@@ -156,15 +166,15 @@ function postLogin(req, res, next) {
   })(req, res, next);
 }
 
-function logout(req, res, next){
-    req.logout((err) => {
-        if(err){
-            next(err);
-            return;
-        }
+function logout(req, res, next) {
+  req.logout((err) => {
+    if (err) {
+      next(err);
+      return;
+    }
 
-        res.redirect('/');
-    })
+    res.redirect('/');
+  });
 }
 
 module.exports = {
@@ -172,5 +182,5 @@ module.exports = {
   getLoginPage,
   createAccount: [createAccountSchema, createAccount],
   postLogin,
-  logout
+  logout,
 };

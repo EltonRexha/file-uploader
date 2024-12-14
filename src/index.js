@@ -6,8 +6,10 @@ const session = require('express-session');
 const passport = require('passport');
 const indexRouter = require('./routes/indexRouter');
 const authRouter = require('./routes/authRouter');
+const dashboardRouter = require('./routes/dashboardRouter');
 const prisma = require('./db/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const HttpError = require('./errors/httpError');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,6 +34,17 @@ app.set('view engine', 'ejs');
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
+app.use('/dashboard', dashboardRouter);
+
+//catch all middleware
+app.use((req, res, next) => {
+  const httpError = new HttpError('Resource not found', 404);
+  next(httpError);
+})
+
+app.use((err, req, res, next) => {
+  res.render('error', { httpCode: err.httpCode, description: err.message });
+});
 
 const PORT = process.env.port || 3000;
 app.listen(PORT, () => {
