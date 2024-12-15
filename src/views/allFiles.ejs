@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <title>FILEUP | Home</title>
+  </head>
+  <body>
+    <%-include('./partials/createWorkspaceModal')%>
+
+    <div class="sm:flex">
+      <%-include('./partials/sidebar.ejs', {allFiles: true})%>
+      <div>
+        <button
+          type="button"
+          onclick="showSideBar()"
+          class="block p-2 w-full sm:hidden hover:bg-gray-100"
+        >
+          <svg
+            class="w-6 h-6"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+            ></path>
+          </svg>
+        </button>
+        <div class="w-full mt-10 ml-10 flex gap-4">
+          <button
+            class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+          >
+            <div class="w-5 mb-2">
+              <img
+                src="/images/icons/upload.svg"
+                alt="upload"
+                class="w-[100%]"
+              />
+            </div>
+            <p>Upload or drop</p>
+          </button>
+          <button
+            id="create-workspace-btn"
+            class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[10rem] text-left"
+          >
+            <div class="w-5 mb-2">
+              <img src="/images/icons/plus.svg" alt="upload" class="w-[100%]" />
+            </div>
+            <p>Create workspace</p>
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const createWorkspaceBtn = document.querySelector(
+          '#create-workspace-btn'
+        );
+        const createWorkspaceModal = document.querySelector(
+          '#create-workspace-modal'
+        );
+
+        createWorkspaceBtn.addEventListener('click', () => {
+          createWorkspaceModal.style.display = 'block';
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,8 +1,8 @@
 const { Router } = require('express');
 const {isAuth} = require('../middlewares/authMiddleware');
-const {getHomePage} = require('../controllers/dashboardController');
+const { getAllFilesPage } = require('../controllers/dashboardController');
 const router = Router();
 
-router.get('/home', isAuth, getHomePage);
+router.get('/home/allFiles', isAuth, getAllFilesPage);
 
 module.exports = router;

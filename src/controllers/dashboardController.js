@@ -1,7 +1,7 @@
-function getHomePage(req, res){
-    res.render('home');
+function getAllFilesPage(req, res){
+    res.render('allFiles');
 }
 
 module.exports = {
-    getHomePage
-}
+  getAllFilesPage,
+};

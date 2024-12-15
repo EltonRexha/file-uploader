@@ -24,6 +24,8 @@ model User {
 
 model Workspace {
   id            String          @id @default(uuid())
+  name          String
+  description   String
   user          User            @relation(fields: [userId], references: [id])
   userId        String          @map("user_id")
   views         Int             @default(0)
