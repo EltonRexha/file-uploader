@@ -7,7 +7,7 @@
     <title>FILEUP | Home</title>
   </head>
   <body>
-    <%-include('./partials/createWorkspaceModal')%>
+    <%-include('./partials/createWorkspaceModal', {errors: locals.errors, show: locals.showCreateWorkspaceModal})%>
 
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {allFiles: true})%>
