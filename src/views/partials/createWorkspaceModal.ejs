@@ -9,7 +9,7 @@
       class="bg-zinc-50 w-full sm:w-[70%] md:w-[30%] p-10 rounded-md relative"
     >
       <form action="/workspace/create" method="post" novalidate>
-        <button class="absolute top-3 right-3" id="close-btn" type="button">
+        <button class="absolute top-3 right-3" id="close-workspace-btn" type="button">
           <div class="w-5">
             <img src="/images/icons/cross.svg" alt="Cross" class="w-[100%]" />
           </div>
@@ -70,13 +70,15 @@
   </div>
 </div>
 <script>
-  const closeBtn = document.querySelector('#close-btn');
-  const createWorkspaceModal = document.querySelector(
-    '#create-workspace-modal'
-  );
+  (() => {
+    const closeBtn = document.querySelector('#close-workspace-btn');
+    const createWorkspaceModal = document.querySelector(
+      '#create-workspace-modal'
+    );
 
-  closeBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    createWorkspaceModal.style.display = 'none';
-  });
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      createWorkspaceModal.style.display = 'none';
+    });
+  })();
 </script>
