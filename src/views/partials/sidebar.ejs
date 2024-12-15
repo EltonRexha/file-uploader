@@ -1,4 +1,4 @@
-<div class="w-full hidden sm:w-80 sm:flex h-screen fixed" id="completeSideBar">
+<div class="w-full hidden sm:w-auto sm:flex h-screen" id="completeSideBar">
   <div class="bg-stone-100 border-stone-300 border-r-2 w-[75px]">
     <button
       class="w-full sm:hidden flex items-center justify-center mt-4 cursor-pointer"
@@ -52,14 +52,16 @@
     </div>
   </div>
   <div
-    class="flex-1 bg-stone-100 border-stone-300 border-r-2 overflow-auto"
+    class="flex-1 w-60 bg-stone-100 border-stone-300 border-r-2 overflow-auto"
     id="sidebar"
   >
     <div id="home-content" class="block">
       <div class="p-4">
         <h1 class="ml-5 mt-3 text-xl font-semibold">Home</h1>
         <div class="mt-10 cursor-pointer">
-          <div class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3">
+          <div
+            class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3 <%=locals.allFiles ? 'bg-zinc-200' : ''%>"
+          >
             <div class="flex w-5 justify-center items-center">
               <img
                 src="/images/icons/allfiles.svg"
@@ -110,7 +112,7 @@
     </div>
     <div id="workspace-content" class="hidden">
       <h1 class="ml-5 mt-6 text-xl font-semibold">My workspaces</h1>
-
+      <% if(locals.workspaces) { locals.workspaces.forEach(({name}) => {%>
       <div class="p-2 mt-3 cursor-pointer">
         <div class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3">
           <div class="flex w-5 justify-center items-center">
@@ -120,9 +122,10 @@
               class="w-[100%]"
             />
           </div>
-          <p>Workspace 1</p>
+          <p><%=name%></p>
         </div>
       </div>
+      <%}) } %>
     </div>
   </div>
 </div>
