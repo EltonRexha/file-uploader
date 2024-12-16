@@ -1,0 +1,101 @@
+<div
+  class="<%= locals.showUploadToWorkspaceModal ? 'block' : 'hidden' %>"
+  id="upload-modal"
+>
+  <div
+    class="flex items-center justify-center absolute top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
+  >
+    <div
+      class="bg-zinc-50 w-full sm:w-[70%] md:w-[40%] p-10 rounded-md relative"
+    >
+      <button
+        class="absolute border-0 top-3 right-3"
+        id="close-btn"
+        type="button"
+      >
+        <div class="w-5">
+          <img src="/images/icons/cross.svg" alt="Cross" class="w-[100%]" />
+        </div>
+      </button>
+      <% if(locals.workspaces.length){%>
+      <div class="flex">
+        <h1 class="text-zinc-900 font-bold mb-4 text-xl">
+          Upload to one of the workspaces
+        </h1>
+        <p class="ml-auto text-sm font-bold text-zinc-500">
+          (0) Files to be uploaded
+        </p>
+      </div>
+      <form
+        action="/workspace/upload"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <input type="text" name="upload_path" class="hidden" value="/" />
+        <input
+          type="file"
+          name="upload_content"
+          class="hidden"
+          id="file-input"
+          multiple
+        />
+        <input
+          type="text"
+          name="workspace"
+          class="hidden"
+          id="workspace-name-input"
+        />
+        <div class="bg-zinc-700 p-2 rounded-md">
+          <% locals.workspaces.forEach(({name, createdAt}, idx) => { %>
+          <button
+            data-workspace-name="<%= name %>"
+            class="workspace-btn text-left text-sm text-white hover:bg-zinc-800 pt-2 pb-2 <%= idx === 0 ? 'border-t-0' : 'border-t-2' %> w-full block"
+          >
+            <div class="flex ml-2 mr-2">
+              <p><%= name %></p>
+              <p class="ml-auto">
+                <%= createdAt.toLocaleDateString('en-US'); %>
+              </p>
+            </div>
+          </button>
+          <% }) %>
+        </div>
+      </form>
+      <%}else{%>
+      <h1>You do not have any workspaces please create one</h1>
+      <%} %>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const closeBtn = document.querySelector('#close-btn');
+    const uploadModal = document.querySelector('#upload-modal');
+    const fileInput = document.querySelector('#file-input');
+    const fileCountDisplay = document.querySelector('.flex p.ml-auto.text-sm');
+
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      uploadModal.style.display = 'none';
+    });
+
+    document.querySelectorAll('.workspace-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const workspaceNameInput = document.querySelector(
+          '#workspace-name-input'
+        );
+        workspaceNameInput.value = btn.getAttribute('data-workspace-name');
+      });
+    });
+
+    // Update file count when files are selected
+    fileInput.addEventListener('change', () => {
+      const fileCount = fileInput.files.length;
+      fileCountDisplay.textContent =
+        fileCount > 0
+          ? `(${fileCount}) File${fileCount > 1 ? 's' : ''} to be uploaded`
+          : '(0) Files to be uploaded';
+    });
+  })();
+</script>

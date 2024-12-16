@@ -45,7 +45,7 @@ app.use('/workspace', workspaceRouter)
 // });
 
 // app.use((err, req, res, next) => {
-//   if (!err instanceof HttpError) {
+//   if (!(err instanceof HttpError)) {
 //     err = new HttpError('Something happened wrong in our side', 500);
 //   }
 

@@ -7,8 +7,9 @@
     <title>FILEUP | Home</title>
   </head>
   <body>
-    <%-include('./partials/createWorkspaceModal', {errors: locals.errors, show:
-    locals.showCreateWorkspaceModal})%>
+    <%-include('./partials/uploadToWorkspaceModal', {workspaces:
+    locals.workspaces})%> <%-include('./partials/createWorkspaceModal', {errors:
+    locals.errors, show: locals.showCreateWorkspaceModal})%>
 
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {allFiles: true, workspaces:
@@ -29,8 +30,9 @@
             ></path>
           </svg>
         </button>
-        <div class="w-full mt-10 ml-10 flex gap-4">
+        <div class="mt-10 ml-10 flex gap-4">
           <button
+            id="upload-btn"
             class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
           >
             <div class="w-5 mb-2">
@@ -65,6 +67,15 @@
 
         createWorkspaceBtn.addEventListener('click', () => {
           createWorkspaceModal.style.display = 'block';
+        });
+
+        const uploadWorkspaceBtn = document.querySelector('#upload-btn');
+        const uploadWorkspaceModal = document.querySelector('#upload-modal');
+        const fileInput = document.querySelector('#file-input');
+
+        uploadWorkspaceBtn.addEventListener('click', () => {
+          uploadWorkspaceModal.style.display = 'block';
+          fileInput.click();
         });
       })();
     </script>

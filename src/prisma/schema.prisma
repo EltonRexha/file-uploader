@@ -29,8 +29,11 @@ model Workspace {
   user          User            @relation(fields: [userId], references: [id])
   userId        String          @map("user_id")
   views         Int             @default(0)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
   folder        Folder[]
   WorkspaceLink WorkspaceLink[]
+  Activity      Activity[]
 
   @@map("workspaces")
 }
@@ -58,32 +61,39 @@ model Folder {
   updatedAt      DateTime   @updatedAt @map("updated_at")
   path           String
   files          File[]
-  activity       Activity[]
+  Activity       Activity[]
 
   @@map("folders")
+
+  @@unique([workspaceId, path])
 }
 
 model File {
-  id        String    @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  extension Extension @default(UNKNOWN)
+  mimeType  String     @map("mime_type")
   byte_size Int
   path      String
-  folder    Folder    @relation(fields: [folderId], references: [id])
-  folderId  String    @map("folder_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  folder    Folder     @relation(fields: [folderId], references: [id])
+  folderId  String     @map("folder_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  Activity  Activity[]
 
   @@map("files")
 }
 
 model Activity {
-  id       String       @id @default(uuid())
-  activity ActivityType
-  folder   Folder       @relation(fields: [folderId], references: [id])
-  user     User         @relation(fields: [userId], references: [id])
-  folderId String       @map("folder_id")
-  userId   String       @map("user_id")
+  id          String       @id @default(uuid())
+  activity    ActivityType
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  folder      Folder       @relation(fields: [folderId], references: [id])
+  file        File?        @relation(fields: [fileId], references: [id])
+  userId      String       @map("user_id")
+  workspaceId String       @map("workspace_id")
+  folderId    String       @map("folder_id")
+  fileId      String?      @map("file_id")
 
   @@map("activities")
 }
@@ -98,25 +108,6 @@ model Session {
 enum ActivityType {
   DOWNLOAD
   UPLOAD
-}
-
-enum Extension {
-  UNKNOWN
-  TXT
-  PDF
-  DOCX
-  XLSX
-  PNG
-  JPG
-  GIF
-  MP4
-  MP3
-  ZIP
-  JSON
-  XML
-  HTML
-  CSS
-  JS
 }
 
 enum Role {
