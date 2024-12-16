@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+
     <title>FILEUP | Home</title>
   </head>
   <body>
@@ -14,50 +20,57 @@
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {allFiles: true, workspaces:
       locals.workspaces})%>
-      <div>
-        <button
-          type="button"
-          onclick="showSideBar()"
-          class="block p-2 w-full sm:hidden hover:bg-gray-100"
-        >
-          <svg
-            class="w-6 h-6"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-            ></path>
-          </svg>
-        </button>
-        <div class="mt-10 ml-10 flex gap-4">
+      <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
+        <div class="p-2">
           <button
-            id="upload-btn"
-            class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+            type="button"
+            onclick="showSideBar()"
+            class="block p-2 w-full sm:hidden hover:bg-gray-100"
           >
-            <div class="w-5 mb-2">
-              <img
-                src="/images/icons/upload.svg"
-                alt="upload"
-                class="w-[100%]"
-              />
-            </div>
-            <p>Upload or drop</p>
+            <svg
+              class="w-6 h-6"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+              ></path>
+            </svg>
           </button>
-          <button
-            id="create-workspace-btn"
-            class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[10rem] text-left"
-          >
-            <div class="w-5 mb-2">
-              <img src="/images/icons/plus.svg" alt="upload" class="w-[100%]" />
-            </div>
-            <p>Create workspace</p>
-          </button>
+          <div class="mt-10 ml-4 sm:ml-10 flex gap-4">
+            <button
+              id="upload-btn"
+              class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+            >
+              <div class="w-5 mb-2">
+                <img
+                  src="/images/icons/upload.svg"
+                  alt="upload"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Upload or drop</p>
+            </button>
+            <button
+              id="create-workspace-btn"
+              class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[10rem] text-left"
+            >
+              <div class="w-5 mb-2">
+                <img
+                  src="/images/icons/plus.svg"
+                  alt="upload"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Create workspace</p>
+            </button>
+          </div>
         </div>
       </div>
     </div>
     <script>
       (() => {
+        const notyf = new Notyf();
         const createWorkspaceBtn = document.querySelector(
           '#create-workspace-btn'
         );
@@ -72,11 +85,58 @@
         const uploadWorkspaceBtn = document.querySelector('#upload-btn');
         const uploadWorkspaceModal = document.querySelector('#upload-modal');
         const fileInput = document.querySelector('#file-input');
+        const fileCountDisplay = document.querySelector('#file-count');
 
         uploadWorkspaceBtn.addEventListener('click', () => {
           uploadWorkspaceModal.style.display = 'block';
           fileInput.click();
         });
+
+        //Drag and drop for the whole thang
+
+        const dropZone = document.querySelector('#drop-zone');
+
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.style.border = '2px dotted blue';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+          dropZone.style.border = 'none';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const files = e.dataTransfer.files;
+          handleFiles(files);
+        });
+
+        function handleFiles(files) {
+          const dataTransfer = new DataTransfer();
+          let displayModal = true;
+          Array.from(files).forEach((file) => {
+            if (file.size === 0) {
+              notyf.error('Please drop only files (not folders)');
+              displayModal = false;
+              return;
+            }
+            dataTransfer.items.add(file);
+          });
+
+          if (displayModal) {
+            fileInput.files = dataTransfer.files;
+            uploadWorkspaceModal.style.display = 'block';
+
+            //change file count
+            const fileCount = fileInput.files.length;
+            fileCountDisplay.textContent =
+              fileCount > 0
+                ? `(${fileCount}) File${
+                    fileCount > 1 ? 's' : ''
+                  } to be uploaded`
+                : '(0) Files to be uploaded';
+          }
+        }
       })();
     </script>
   </body>

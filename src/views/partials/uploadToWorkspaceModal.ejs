@@ -6,7 +6,7 @@
     class="flex items-center justify-center absolute top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
   >
     <div
-      class="bg-zinc-50 w-full sm:w-[70%] md:w-[40%] p-10 rounded-md relative"
+      class="bg-zinc-50 w-full sm:w-[70%] md:w-[45%] lg:w-[40%] p-10 rounded-md relative"
     >
       <button
         class="absolute border-0 top-3 right-3"
@@ -22,7 +22,7 @@
         <h1 class="text-zinc-900 font-bold mb-4 text-xl">
           Upload to one of the workspaces
         </h1>
-        <p class="ml-auto text-sm font-bold text-zinc-500">
+        <p class="ml-auto text-sm font-bold text-zinc-500" id="file-count">
           (0) Files to be uploaded
         </p>
       </div>
@@ -73,7 +73,7 @@
     const closeBtn = document.querySelector('#close-btn');
     const uploadModal = document.querySelector('#upload-modal');
     const fileInput = document.querySelector('#file-input');
-    const fileCountDisplay = document.querySelector('.flex p.ml-auto.text-sm');
+    const fileCountDisplay = document.querySelector('#file-count');
 
     closeBtn.addEventListener('click', (e) => {
       e.preventDefault();

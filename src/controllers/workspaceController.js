@@ -89,7 +89,7 @@ async function uploadFiles(req, res, next) {
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
       });
-
+    
     const wk = await prisma.workspace.findFirst({
       where: {
         name: workspace,
@@ -117,14 +117,19 @@ async function uploadFiles(req, res, next) {
       },
     });
   }
-  
+
   res.redirect('/');
 }
 
-async function fileExists(filePath) {
+async function fileExists(filePath, userId) {
   const file = await prisma.file.findFirst({
     where: {
       path: filePath,
+      folder: {
+        workspace: {
+          userId: userId,
+        },
+      },
     },
   });
 
