@@ -1,5 +1,7 @@
 const { body, validationResult } = require('express-validator');
 const prisma = require('../db/client');
+const upload = require('../utils/multer');
+const supabase = require('../utils/supabase');
 
 const createWorkspaceSchema = [
   body('name')
@@ -37,6 +39,12 @@ async function createWorkspace(req, res) {
           id: user.id,
         },
       },
+      folder: {
+        create: {
+          name: '',
+          path: '/',
+        },
+      },
       name,
       description,
     },
@@ -45,6 +53,9 @@ async function createWorkspace(req, res) {
   res.redirect('/');
 }
 
+async function uploadFiles(req, res) {}
+
 module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
+  uploadFiles: [upload.array('upload_content', 10), uploadFiles],
 };

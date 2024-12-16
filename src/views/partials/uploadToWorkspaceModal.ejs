@@ -17,15 +17,21 @@
           <img src="/images/icons/cross.svg" alt="Cross" class="w-[100%]" />
         </div>
       </button>
+      <% if(locals.workspaces.length){%>
       <div class="flex">
         <h1 class="text-zinc-900 font-bold mb-4 text-xl">
           Upload to one of the workspaces
         </h1>
-        <p class="ml-auto text-sm font-bold text-zinc-500">(0) Files to be uploaded</p>
+        <p class="ml-auto text-sm font-bold text-zinc-500">
+          (0) Files to be uploaded
+        </p>
       </div>
-
-      <form action="/workspaces/upload" method="post">
-        <input type="text" name="upload_folder" class="hidden" value="/" />
+      <form
+        action="/workspace/upload"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <input type="text" name="upload_path" class="hidden" value="/" />
         <input
           type="file"
           name="upload_content"
@@ -40,8 +46,7 @@
           id="workspace-name-input"
         />
         <div class="bg-zinc-700 p-2 rounded-md">
-          <% [{name: 'Abcd', createdAt: new Date()}, {name: 'Abcde', createdAt:
-          new Date()}].forEach(({name, createdAt}, idx) => { %>
+          <% locals.workspaces.forEach(({name, createdAt}, idx) => { %>
           <button
             data-workspace-name="<%= name %>"
             class="workspace-btn text-left text-sm text-white hover:bg-zinc-800 pt-2 pb-2 <%= idx === 0 ? 'border-t-0' : 'border-t-2' %> w-full block"
@@ -56,6 +61,9 @@
           <% }) %>
         </div>
       </form>
+      <%}else{%>
+        <h1>You do not have any workspaces please create one</h1>
+      <%} %>
     </div>
   </div>
 </div>

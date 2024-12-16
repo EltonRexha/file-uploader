@@ -33,6 +33,7 @@ model Workspace {
   updatedAt     DateTime        @updatedAt @map("updated_at")
   folder        Folder[]
   WorkspaceLink WorkspaceLink[]
+  Activity      Activity[]
 
   @@map("workspaces")
 }
@@ -60,32 +61,37 @@ model Folder {
   updatedAt      DateTime   @updatedAt @map("updated_at")
   path           String
   files          File[]
-  activity       Activity[]
+  Activity       Activity[]
 
   @@map("folders")
 }
 
 model File {
-  id        String    @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  extension Extension @default(UNKNOWN)
+  extension Extension  @default(UNKNOWN)
   byte_size Int
   path      String
-  folder    Folder    @relation(fields: [folderId], references: [id])
-  folderId  String    @map("folder_id")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  folder    Folder     @relation(fields: [folderId], references: [id])
+  folderId  String     @map("folder_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  Activity  Activity[]
 
   @@map("files")
 }
 
 model Activity {
-  id       String       @id @default(uuid())
-  activity ActivityType
-  folder   Folder       @relation(fields: [folderId], references: [id])
-  user     User         @relation(fields: [userId], references: [id])
-  folderId String       @map("folder_id")
-  userId   String       @map("user_id")
+  id          String       @id @default(uuid())
+  activity    ActivityType
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  folder      Folder       @relation(fields: [folderId], references: [id])
+  file        File?        @relation(fields: [fileId], references: [id])
+  userId      String       @map("user_id")
+  workspaceId String
+  folderId    String
+  fileId      String?
 
   @@map("activities")
 }

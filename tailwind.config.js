@@ -3,7 +3,6 @@ module.exports = {
   content: ['./src/views/**/*.ejs', './src/js/**/*.js'],
   theme: {
     extend: {
-      
       fontSize: {
         xxs: '0.7rem',
       },
