@@ -6,22 +6,6 @@ const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
 
-function hashFileName(fileName, userId) {
-  return crypto
-    .createHash('sha256')
-    .update(fileName + userId)
-    .digest('hex');
-}
-
-const createWorkspaceSchema = [
-  body('name')
-    .isLength({ min: 3, max: 8 })
-    .withMessage('Name must be between 3 to 8 characters long'),
-  body('description')
-    .isLength({ max: 10 })
-    .withMessage('Description is too long (less that 10 characters)'),
-];
-
 async function createWorkspace(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -64,7 +48,7 @@ async function createWorkspace(req, res) {
 }
 
 async function uploadFiles(req, res, next) {
-  const { upload_path, workspace } = req.body;
+  const { upload_path, workspaceName } = req.body;
   const files = req.files;
 
   for (const file of files) {
@@ -83,21 +67,25 @@ async function uploadFiles(req, res, next) {
       return;
     }
 
+    const workspace = await prisma.workspace.findFirst({
+      where: {
+        name: workspaceName,
+        user: {
+          id: req.user.id,
+        },
+      },
+    });
+
+    if (!workspace) {
+      next(new HttpError(`Could not find this workspace`, 409));
+    }
+
     // Upload to Supabase
     await supabase.storage
       .from(process.env.BUCKET_NAME)
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
       });
-    
-    const wk = await prisma.workspace.findFirst({
-      where: {
-        name: workspace,
-        user: {
-          id: req.user.id,
-        },
-      },
-    });
 
     // Query the database
     await prisma.file.create({
@@ -109,7 +97,7 @@ async function uploadFiles(req, res, next) {
         folder: {
           connect: {
             workspaceId_path: {
-              workspaceId: wk.id,
+              workspaceId: workspace.id,
               path: upload_path,
             },
           },
@@ -119,6 +107,20 @@ async function uploadFiles(req, res, next) {
   }
 
   res.redirect('/');
+}
+
+async function getWorkspaceContent(req, res) {
+  const { workspaceName } = req.params;
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: req.user.id,
+      },
+    },
+  });
+
+  res.render('workspaceContent', { workspace });
 }
 
 async function fileExists(filePath, userId) {
@@ -136,7 +138,24 @@ async function fileExists(filePath, userId) {
   return !!file;
 }
 
+function hashFileName(fileName, userId) {
+  return crypto
+    .createHash('sha256')
+    .update(fileName + userId)
+    .digest('hex');
+}
+
+const createWorkspaceSchema = [
+  body('name')
+    .isLength({ min: 3, max: 8 })
+    .withMessage('Name must be between 3 to 8 characters long'),
+  body('description')
+    .isLength({ max: 30 })
+    .withMessage('Description is too long (less that 30 characters)'),
+];
+
 module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
   uploadFiles: [upload.array('upload_content', 10), uploadFiles],
+  getWorkspaceContent,
 };

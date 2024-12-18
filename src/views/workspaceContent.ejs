@@ -10,18 +10,15 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
 
-    <title>FILEUP | Home</title>
+    <title>FILEUP | <%=workspace.name%></title>
   </head>
   <body>
-    <%-include('./partials/uploadToWorkspaceModal', {workspaces:
-    locals.workspaces})%> <%-include('./partials/createWorkspaceModal', {errors:
-    locals.errors, show: locals.showCreateWorkspaceModal})%>
-
     <div class="sm:flex">
-      <%-include('./partials/sidebar.ejs', {allFiles: true, workspaces:
+      <%-include('./partials/sidebar.ejs', {workspace: true, workspaces:
       locals.workspaces})%>
       <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
-        <div>
+        <h1 class="text-xl mt-2"><%=workspace.name%></h1>
+        <div class="p-2">
           <button
             type="button"
             onclick="showSideBar()"
@@ -38,21 +35,42 @@
             </svg>
           </button>
           <div class="mt-10 ml-4 sm:ml-10 flex gap-4">
-            <button
-              id="upload-btn"
-              class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+            <form
+              action="/workspace/upload"
+              method="post"
+              enctype="multipart/form-data"
             >
-              <div class="w-5 mb-2">
-                <img
-                  src="/images/icons/upload.svg"
-                  alt="upload"
-                  class="w-[100%]"
-                />
-              </div>
-              <p>Upload or drop</p>
-            </button>
+              <input type="text" name="upload_path" class="hidden" value="/" />
+              <input
+                type="file"
+                name="upload_content"
+                class="hidden"
+                id="file-input"
+                multiple
+              />
+              <input
+                type="text"
+                name="workspace"
+                class="hidden"
+                id="workspace-name-input"
+              />
+              <button
+                id="upload-btn"
+                class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+              >
+                <div class="w-5 mb-2">
+                  <img
+                    src="/images/icons/upload.svg"
+                    alt="upload"
+                    class="w-[100%]"
+                  />
+                </div>
+                <p>Upload or drop</p>
+              </button>
+            </form>
+
             <button
-              id="create-workspace-btn"
+              id="create-folder-btn"
               class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[10rem] text-left"
             >
               <div class="w-5 mb-2">
@@ -62,7 +80,7 @@
                   class="w-[100%]"
                 />
               </div>
-              <p>Create workspace</p>
+              <p>Create folder</p>
             </button>
           </div>
         </div>
@@ -71,25 +89,14 @@
     <script>
       (() => {
         const notyf = new Notyf();
-        const createWorkspaceBtn = document.querySelector(
-          '#create-workspace-btn'
-        );
-        const createWorkspaceModal = document.querySelector(
-          '#create-workspace-modal'
-        );
 
-        createWorkspaceBtn.addEventListener('click', () => {
-          createWorkspaceModal.style.display = 'block';
-        });
-
-        const uploadWorkspaceBtn = document.querySelector('#upload-btn');
-        const uploadWorkspaceModal = document.querySelector('#upload-modal');
+        const uploadBtn = document.querySelector('#upload-btn');
         const fileInput = document.querySelector('#file-input');
-        const fileCountDisplay = document.querySelector('#file-count');
+        const form = document.querySelector('form');
 
-        uploadWorkspaceBtn.addEventListener('click', () => {
-          uploadWorkspaceModal.style.display = 'block';
+        uploadBtn.addEventListener('click', (e) => {
           fileInput.click();
+          e.preventDefault();
         });
 
         //Drag and drop for the whole thang
@@ -111,6 +118,10 @@
           handleFiles(files);
         });
 
+        fileInput.addEventListener('change', () => {
+          form.submit();
+        });
+
         function handleFiles(files) {
           const dataTransfer = new DataTransfer();
           let displayModal = true;
@@ -125,16 +136,6 @@
 
           if (displayModal) {
             fileInput.files = dataTransfer.files;
-            uploadWorkspaceModal.style.display = 'block';
-
-            //change file count
-            const fileCount = fileInput.files.length;
-            fileCountDisplay.textContent =
-              fileCount > 0
-                ? `(${fileCount}) File${
-                    fileCount > 1 ? 's' : ''
-                  } to be uploaded`
-                : '(0) Files to be uploaded';
           }
         }
       })();
