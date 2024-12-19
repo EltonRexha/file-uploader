@@ -6,7 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
 
-async function createWorkspace(req, res) {
+async function createWorkspace(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const errorMessages = errors.array();
@@ -25,6 +25,20 @@ async function createWorkspace(req, res) {
 
   const { name, description } = req.body;
   const user = req.user;
+
+  const exists = await prisma.workspace.findFirst({
+    where: {
+      name: name,
+      user: {
+        id: user.id,
+      },
+    },
+  });
+
+  if (exists) {
+    next(new HttpError('A workspace with this name already exists', 409));
+    return;
+  }
 
   await prisma.workspace.create({
     data: {
@@ -52,8 +66,8 @@ async function uploadFiles(req, res, next) {
   const files = req.files;
 
   for (const file of files) {
-    const fileName = hashFileName(file.originalname, req.user.id);
-    const filePath = path.join(upload_path, fileName);
+    const hashedFilename = hashFileName(file.originalname, req.user.id);
+    const filePath = path.join(upload_path, hashedFilename);
 
     const exists = await fileExists(filePath);
 
@@ -91,7 +105,8 @@ async function uploadFiles(req, res, next) {
     await prisma.file.create({
       data: {
         byte_size: file.size,
-        name: fileName,
+        name: file.originalname,
+        hashName: hashedFilename,
         mimeType: file.mimetype,
         path: filePath,
         folder: {
@@ -111,6 +126,12 @@ async function uploadFiles(req, res, next) {
 
 async function getWorkspaceContent(req, res) {
   const { workspaceName } = req.params;
+  if (!req.query.path) {
+    res.redirect(`${workspaceName}?path=/`);
+  }
+
+  const { path } = req.query;
+
   const workspace = await prisma.workspace.findFirst({
     where: {
       name: workspaceName,
@@ -120,7 +141,40 @@ async function getWorkspaceContent(req, res) {
     },
   });
 
-  res.render('workspaceContent', { workspace });
+  const folders = await prisma.folder.findMany({
+    where: {
+      path: {
+        startsWith: path,
+      },
+      NOT: {
+        path: '/',
+      },
+      workspace: {
+        name: workspaceName,
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+  });
+
+  const files = await prisma.file.findMany({
+    where: {
+      folder: {
+        path: {
+          startsWith: path,
+        },
+        workspace: {
+          name: workspaceName,
+          user: {
+            id: req.user.id,
+          },
+        },
+      },
+    },
+  });
+
+  res.render('workspaceContent', { workspace, folders, files: files });
 }
 
 async function fileExists(filePath, userId) {

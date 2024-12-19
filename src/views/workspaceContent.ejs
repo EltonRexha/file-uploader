@@ -16,9 +16,9 @@
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {workspace: true, workspaces:
       locals.workspaces})%>
+      <%-include('./partials/createFolderModal.ejs', {showFolderModal: locals.showFolderModal})%>
       <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
-        <h1 class="text-xl mt-2"><%=workspace.name%></h1>
-        <div class="p-2">
+        <div class="p-2 pt-0">
           <button
             type="button"
             onclick="showSideBar()"
@@ -34,6 +34,10 @@
               ></path>
             </svg>
           </button>
+          <h1 class="text-xl mt-4 ml-10 font-semibold text-zinc-600">
+            <%=workspace.name%>
+          </h1>
+
           <div class="mt-10 ml-4 sm:ml-10 flex gap-4">
             <form
               action="/workspace/upload"
@@ -56,7 +60,7 @@
               />
               <button
                 id="upload-btn"
-                class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[10rem] text-left"
+                class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
               >
                 <div class="w-5 mb-2">
                   <img
@@ -65,13 +69,14 @@
                     class="w-[100%]"
                   />
                 </div>
-                <p>Upload or drop</p>
+                <p class="hidden sm:block">Upload or drop</p>
+                <p class="block sm:hidden">Upload</p>
               </button>
             </form>
 
             <button
               id="create-folder-btn"
-              class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[10rem] text-left"
+              class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
             >
               <div class="w-5 mb-2">
                 <img
@@ -80,9 +85,55 @@
                   class="w-[100%]"
                 />
               </div>
-              <p>Create folder</p>
+              <p class="hidden sm:block">Create folder</p>
+              <p class="block sm:hidden">Folder</p>
             </button>
           </div>
+        </div>
+        <div
+          class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-[93%] mx-auto mt-10"
+        >
+          <% locals.folders.forEach((folder) => {%>
+          <div>
+            <div></div>
+            <p><%=folder.name%></p>
+          </div>
+          <%}) %><% locals.files.forEach((file) => { %>
+          <div class="w-40 flex flex-col items-center p-4">
+            <div class="w-20 h-20 cursor-pointer">
+              <img
+                src="<%= 
+                      {
+                        'js': '/images/icons/fileIcons/code.png',
+                        'css': '/images/icons/fileIcons/code.png',
+                        'html': '/images/icons/fileIcons/code.png',
+                        'php': '/imagesicons/fileIcons/code.png',
+                        'c': '/images/icons/fileIcons/code.png',
+                        'cpp': '/images/icons/fileIcons/code.png',
+                        'png': '/images/icons/fileIcons/image.png',
+                        'svg': '/images/icons/fileIcons/image.png',
+                        'jpeg': '/images/icons/fileIcons/image.png',
+                        'webp': '/images/icons/fileIcons/image.png',
+                        'pdf': '/images/icons/fileIcons/pdf.png',
+                        'ppt': '/images/icons/fileIcons/ppt.png',
+                        'exe': '/images/icons/fileIcons/exe.png',
+                        'xls': '/images/icons/fileIcons/xls.png',
+                        'sql': '/images/icons/fileIcons/sql.png',
+                        'wav': '/images/icons/fileIcons/wav.png',
+                        'word': '/images/icons/fileIcons/word.png',
+                        'zip': '/images/icons/fileIcons/zip.png',
+                      }[file.name.split('.').pop()] || '/images/icons/fileIcons/raw.png'
+                %>"
+                alt=""
+                class="w-[100%]"
+              />
+            </div>
+            <p class="text-center">
+              <%= file.name.length > 12 ? file.name.slice(0, 12) + "..." :
+              file.name.split('.')[0] %>
+            </p>
+          </div>
+          <% }) %>
         </div>
       </div>
     </div>
@@ -138,6 +189,13 @@
             fileInput.files = dataTransfer.files;
           }
         }
+
+        const createFolderBtn = document.querySelector('#create-folder-btn');
+        const createFolderModal = document.querySelector('#create-folder-modal');
+
+        createFolderBtn.addEventListener('click', () => {
+          createFolderModal.style.display = 'block';
+        })
       })();
     </script>
   </body>

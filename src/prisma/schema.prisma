@@ -63,13 +63,13 @@ model Folder {
   files          File[]
   Activity       Activity[]
 
-  @@map("folders")
-
   @@unique([workspaceId, path])
+  @@map("folders")
 }
 
 model File {
   id        String     @id @default(uuid())
+  hashName  String
   name      String
   mimeType  String     @map("mime_type")
   byte_size Int
