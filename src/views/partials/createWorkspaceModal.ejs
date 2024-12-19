@@ -3,13 +3,17 @@
   id="create-workspace-modal"
 >
   <div
-    class="flex items-center justify-center absolute top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
+    class="flex items-center justify-center absolute z-50 top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
   >
     <div
       class="bg-zinc-50 w-full sm:w-[70%] md:w-[30%] p-10 rounded-md relative"
     >
       <form action="/workspace/create" method="post" novalidate>
-        <button class="absolute top-3 right-3" id="close-workspace-btn" type="button">
+        <button
+          class="absolute top-3 right-3"
+          id="close-workspace-btn"
+          type="button"
+        >
           <div class="w-5">
             <img src="/images/icons/cross.svg" alt="Cross" class="w-[100%]" />
           </div>

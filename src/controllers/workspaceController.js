@@ -6,20 +6,17 @@ const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
 
+function customPathJoin(...segments) {
+  const joinedPath = path.join(...segments);
+  return joinedPath.replace(/\\/g, '/'); // Replaces backslashes with forward slashes on Windows
+}
+
 async function createWorkspace(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array();
-    const nameError =
-      errorMessages.find((err) => err.path === 'name')?.msg || '';
-    const descriptionError =
-      errorMessages.find((err) => err.path === 'description')?.msg || '';
+    req.flash('createWorkspaceErrors', errors.array());
 
-    res.redirect(
-      `/dashboard/home/allFiles?workspaceModal=true&nameError=${encodeURIComponent(
-        nameError
-      )}&descriptionError=${encodeURIComponent(descriptionError)}`
-    );
+    res.redirect(`/dashboard/home/allFiles?workspaceModal=true`);
     return;
   }
 
@@ -62,12 +59,12 @@ async function createWorkspace(req, res, next) {
 }
 
 async function uploadFiles(req, res, next) {
-  const { upload_path, workspaceName } = req.body;
+  const { upload_path, workspace: workspaceName } = req.body;
   const files = req.files;
 
   for (const file of files) {
     const hashedFilename = hashFileName(file.originalname, req.user.id);
-    const filePath = path.join(upload_path, hashedFilename);
+    const filePath = customPathJoin(upload_path, hashedFilename);
 
     const exists = await fileExists(filePath);
 
@@ -121,16 +118,29 @@ async function uploadFiles(req, res, next) {
     });
   }
 
-  res.redirect('/');
+  res.redirect(`/workspace/${workspaceName}?path=${upload_path}`);
 }
 
-async function getWorkspaceContent(req, res) {
+async function getWorkspaceContent(req, res, next) {
   const { workspaceName } = req.params;
   if (!req.query.path) {
-    res.redirect(`${workspaceName}?path=/`);
+    res.redirect(`/workspace/${workspaceName}?path=/`);
   }
 
-  const { path } = req.query;
+  const exists = await workspaceExists(workspaceName, req.user.id);
+  if(!exists){
+    next(new HttpError('Looks like you are lost...', 404));
+    return;
+  }
+
+  const contentPath = req.query.path;
+
+  const fExists = await folderExists(contentPath, req.user.id);
+
+  if(!fExists){
+    next(new HttpError('Looks like you are lost...', 400));
+    return;
+  }
 
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -143,11 +153,8 @@ async function getWorkspaceContent(req, res) {
 
   const folders = await prisma.folder.findMany({
     where: {
-      path: {
-        startsWith: path,
-      },
-      NOT: {
-        path: '/',
+      parentFolder: {
+        path: contentPath,
       },
       workspace: {
         name: workspaceName,
@@ -162,7 +169,7 @@ async function getWorkspaceContent(req, res) {
     where: {
       folder: {
         path: {
-          startsWith: path,
+          startsWith: contentPath,
         },
         workspace: {
           name: workspaceName,
@@ -174,7 +181,107 @@ async function getWorkspaceContent(req, res) {
     },
   });
 
-  res.render('workspaceContent', { workspace, folders, files: files });
+  const createFolderErrors = req.flash('createFolderErrors');
+  if (createFolderErrors.length) {
+    res.render('workspaceContent', {
+      showFolderModal: true,
+      createFolderErrors,
+      workspace,
+      folders,
+      files: files,
+      path: contentPath,
+    });
+    return;
+  }
+
+  res.render('workspaceContent', {
+    workspace,
+    folders,
+    files: files,
+    path: contentPath,
+  });
+}
+
+async function createFolder(req, res) {
+  const errors = validationResult(req);
+  const { workspace_name, create_path, name } = req.body;
+  if (!errors.isEmpty()) {
+    req.flash('createFolderErrors', errors.array());
+    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    return;
+  }
+
+  const exists = await folderExists(name, req.user.id);
+  if (exists) {
+    req.flash('createFolderErrors', [
+      { msg: 'Folder with this name already exists' },
+    ]);
+    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    return;
+  }
+
+  const parentFolder = await prisma.folder.findFirst({
+    where: {
+      path: create_path,
+      workspace: {
+        name: workspace_name,
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+  });
+
+  //child folder
+  await prisma.folder.create({
+    data: {
+      path: customPathJoin(create_path.toLowerCase(), name.toLowerCase()),
+      name: name.toLowerCase(),
+      workspace: {
+        connect: {
+          name_userId: {
+            name: workspace_name,
+            userId: req.user.id,
+          },
+        },
+      },
+      parentFolder: {
+        connect: {
+          id: parentFolder.id,
+        },
+      },
+    },
+  });
+
+  res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+}
+
+async function workspaceExists(workspaceName, userId) {
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  return !!workspace;
+}
+
+async function folderExists(folderPath, userId) {
+  const folder = await prisma.folder.findFirst({
+    where: {
+      path: folderPath,
+      workspace: {
+        user: {
+          id: userId,
+        },
+      },
+    },
+  });
+
+  return !!folder;
 }
 
 async function fileExists(filePath, userId) {
@@ -199,6 +306,12 @@ function hashFileName(fileName, userId) {
     .digest('hex');
 }
 
+const createFolderSchema = [
+  body('name')
+    .isLength({ min: 3, max: 15 })
+    .withMessage('The name of the folder must be between 3 and 15 characters'),
+];
+
 const createWorkspaceSchema = [
   body('name')
     .isLength({ min: 3, max: 8 })
@@ -211,5 +324,6 @@ const createWorkspaceSchema = [
 module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
   uploadFiles: [upload.array('upload_content', 10), uploadFiles],
+  createFolder: [createFolderSchema, createFolder],
   getWorkspaceContent,
 };

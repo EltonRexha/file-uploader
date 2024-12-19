@@ -15,8 +15,10 @@
   <body>
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {workspace: true, workspaces:
-      locals.workspaces})%>
-      <%-include('./partials/createFolderModal.ejs', {showFolderModal: locals.showFolderModal})%>
+      locals.workspaces})%> <%-include('./partials/createFolderModal.ejs',
+      {showFolderModal: locals.showFolderModal, path: locals.path,
+      workspaceName: locals.workspace.name, errors:
+      locals.createFolderErrors})%>
       <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
         <div class="p-2 pt-0">
           <button
@@ -43,8 +45,9 @@
               action="/workspace/upload"
               method="post"
               enctype="multipart/form-data"
+              id="upload-form"
             >
-              <input type="text" name="upload_path" class="hidden" value="/" />
+              <input type="text" name="upload_path" class="hidden" value="<%=locals.path%>" />
               <input
                 type="file"
                 name="upload_content"
@@ -57,8 +60,10 @@
                 name="workspace"
                 class="hidden"
                 id="workspace-name-input"
+                value="<%=locals.workspace.name%>"
               />
               <button
+                type="button"
                 id="upload-btn"
                 class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
               >
@@ -94,10 +99,18 @@
           class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-[93%] mx-auto mt-10"
         >
           <% locals.folders.forEach((folder) => {%>
-          <div>
-            <div></div>
-            <p><%=folder.name%></p>
-          </div>
+          <a href="?path=<%=folder.path%>">
+            <div class="w-40 flex flex-col items-center p-4">
+              <div class="w-20 h-20 cursor-pointer">
+                <img src="/images/icons/folder.svg" alt="" class="w-[100%]" />
+              </div>
+              <p class="text-center">
+                <%= folder.name.length > 12 ? folder.name.slice(0, 12) + "..." :
+                folder.name.split('.')[0] %>
+              </p>
+            </div>
+          </a>
+
           <%}) %><% locals.files.forEach((file) => { %>
           <div class="w-40 flex flex-col items-center p-4">
             <div class="w-20 h-20 cursor-pointer">
@@ -143,7 +156,7 @@
 
         const uploadBtn = document.querySelector('#upload-btn');
         const fileInput = document.querySelector('#file-input');
-        const form = document.querySelector('form');
+        const uploadForm = document.querySelector('#upload-form');
 
         uploadBtn.addEventListener('click', (e) => {
           fileInput.click();
@@ -170,7 +183,7 @@
         });
 
         fileInput.addEventListener('change', () => {
-          form.submit();
+          uploadForm.submit();
         });
 
         function handleFiles(files) {
@@ -191,11 +204,13 @@
         }
 
         const createFolderBtn = document.querySelector('#create-folder-btn');
-        const createFolderModal = document.querySelector('#create-folder-modal');
+        const createFolderModal = document.querySelector(
+          '#create-folder-modal'
+        );
 
         createFolderBtn.addEventListener('click', () => {
           createFolderModal.style.display = 'block';
-        })
+        });
       })();
     </script>
   </body>

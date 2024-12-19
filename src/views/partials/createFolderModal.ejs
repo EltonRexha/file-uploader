@@ -1,9 +1,9 @@
 <div
-  class="<%=locals.showFolderModal ? 'block' : 'hidden' %>"
+  class="<%=locals.showFolderModal ? 'block' : 'hidden' %> "
   id="create-folder-modal"
 >
   <div
-    class="flex items-center justify-center absolute top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
+    class="flex items-center justify-center absolute z-50 top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
   >
     <div
       class="bg-zinc-50 w-full sm:w-[70%] md:w-[30%] p-10 rounded-md relative"
@@ -28,6 +28,8 @@
               placeholder="Name"
               required
             />
+            <input type="text" name="workspace_name" class="hidden" value="<%=locals.workspaceName%>" />
+            <input type="text" name="create_path" class="hidden" value="<%=locals.path%>" />
             <label
               for="name"
               class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"

@@ -3,17 +3,7 @@ function getAllFilesPage(req, res) {
   const showCreateWorkspaceModal = query.workspaceModal;
 
   if (showCreateWorkspaceModal) {
-    const errors = [];
-    const nameError = query.nameError;
-    const descriptionError = query.descriptionError;
-
-    if (nameError) {
-      errors.push({ msg: nameError });
-    }
-
-    if (descriptionError) {
-      errors.push({ msg: descriptionError });
-    }
+    const errors = req.flash('createWorkspaceErrors');
 
     res.render('allFiles', {
       showCreateWorkspaceModal,

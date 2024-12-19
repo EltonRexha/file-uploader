@@ -35,6 +35,7 @@ model Workspace {
   WorkspaceLink WorkspaceLink[]
   Activity      Activity[]
 
+  @@unique([name, userId])
   @@map("workspaces")
 }
 
