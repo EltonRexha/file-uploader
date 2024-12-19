@@ -10,6 +10,7 @@ const dashboardRouter = require('./routes/dashboardRouter');
 const workspaceRouter = require('./routes/workspaceRouter');
 const prisma = require('./db/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const flash = require('connect-flash');
 const HttpError = require('./errors/httpError');
 
 app.use(express.urlencoded({ extended: true }));
@@ -30,13 +31,14 @@ app.use(
   })
 );
 app.use(passport.session());
+app.use(flash());
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
 app.use('/dashboard', dashboardRouter);
-app.use('/workspace', workspaceRouter)
+app.use('/workspace', workspaceRouter);
 
 //catch all middleware
 app.use((req, res, next) => {

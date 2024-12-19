@@ -6,41 +6,36 @@ const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
 
-function hashFileName(fileName, userId) {
-  return crypto
-    .createHash('sha256')
-    .update(fileName + userId)
-    .digest('hex');
+function customPathJoin(...segments) {
+  const joinedPath = path.join(...segments);
+  return joinedPath.replace(/\\/g, '/'); // Replaces backslashes with forward slashes on Windows
 }
 
-const createWorkspaceSchema = [
-  body('name')
-    .isLength({ min: 3, max: 8 })
-    .withMessage('Name must be between 3 to 8 characters long'),
-  body('description')
-    .isLength({ max: 10 })
-    .withMessage('Description is too long (less that 10 characters)'),
-];
-
-async function createWorkspace(req, res) {
+async function createWorkspace(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array();
-    const nameError =
-      errorMessages.find((err) => err.path === 'name')?.msg || '';
-    const descriptionError =
-      errorMessages.find((err) => err.path === 'description')?.msg || '';
+    req.flash('createWorkspaceErrors', errors.array());
 
-    res.redirect(
-      `/dashboard/home/allFiles?workspaceModal=true&nameError=${encodeURIComponent(
-        nameError
-      )}&descriptionError=${encodeURIComponent(descriptionError)}`
-    );
+    res.redirect(`/dashboard/home/allFiles?workspaceModal=true`);
     return;
   }
 
   const { name, description } = req.body;
   const user = req.user;
+
+  const exists = await prisma.workspace.findFirst({
+    where: {
+      name: name,
+      user: {
+        id: user.id,
+      },
+    },
+  });
+
+  if (exists) {
+    next(new HttpError('A workspace with this name already exists', 409));
+    return;
+  }
 
   await prisma.workspace.create({
     data: {
@@ -64,12 +59,12 @@ async function createWorkspace(req, res) {
 }
 
 async function uploadFiles(req, res, next) {
-  const { upload_path, workspace } = req.body;
+  const { upload_path, workspace: workspaceName } = req.body;
   const files = req.files;
 
   for (const file of files) {
-    const fileName = hashFileName(file.originalname, req.user.id);
-    const filePath = path.join(upload_path, fileName);
+    const hashedFilename = hashFileName(file.originalname, req.user.id);
+    const filePath = customPathJoin(upload_path, hashedFilename);
 
     const exists = await fileExists(filePath);
 
@@ -83,33 +78,38 @@ async function uploadFiles(req, res, next) {
       return;
     }
 
-    // Upload to Supabase
-    await supabase.storage
-      .from(process.env.BUCKET_NAME)
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
-      });
-    
-    const wk = await prisma.workspace.findFirst({
+    const workspace = await prisma.workspace.findFirst({
       where: {
-        name: workspace,
+        name: workspaceName,
         user: {
           id: req.user.id,
         },
       },
     });
 
+    if (!workspace) {
+      next(new HttpError(`Could not find this workspace`, 409));
+    }
+
+    // Upload to Supabase
+    await supabase.storage
+      .from(process.env.BUCKET_NAME)
+      .upload(filePath, file.buffer, {
+        contentType: file.mimetype,
+      });
+
     // Query the database
     await prisma.file.create({
       data: {
         byte_size: file.size,
-        name: fileName,
+        name: file.originalname,
+        hashName: hashedFilename,
         mimeType: file.mimetype,
         path: filePath,
         folder: {
           connect: {
             workspaceId_path: {
-              workspaceId: wk.id,
+              workspaceId: workspace.id,
               path: upload_path,
             },
           },
@@ -118,7 +118,170 @@ async function uploadFiles(req, res, next) {
     });
   }
 
-  res.redirect('/');
+  res.redirect(`/workspace/${workspaceName}?path=${upload_path}`);
+}
+
+async function getWorkspaceContent(req, res, next) {
+  const { workspaceName } = req.params;
+  if (!req.query.path) {
+    res.redirect(`/workspace/${workspaceName}?path=/`);
+  }
+
+  const exists = await workspaceExists(workspaceName, req.user.id);
+  if(!exists){
+    next(new HttpError('Looks like you are lost...', 404));
+    return;
+  }
+
+  const contentPath = req.query.path;
+
+  const fExists = await folderExists(contentPath, req.user.id);
+
+  if(!fExists){
+    next(new HttpError('Looks like you are lost...', 400));
+    return;
+  }
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: req.user.id,
+      },
+    },
+  });
+
+  const folders = await prisma.folder.findMany({
+    where: {
+      parentFolder: {
+        path: contentPath,
+      },
+      workspace: {
+        name: workspaceName,
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+  });
+
+  const files = await prisma.file.findMany({
+    where: {
+      folder: {
+        path: {
+          startsWith: contentPath,
+        },
+        workspace: {
+          name: workspaceName,
+          user: {
+            id: req.user.id,
+          },
+        },
+      },
+    },
+  });
+
+  const createFolderErrors = req.flash('createFolderErrors');
+  if (createFolderErrors.length) {
+    res.render('workspaceContent', {
+      showFolderModal: true,
+      createFolderErrors,
+      workspace,
+      folders,
+      files: files,
+      path: contentPath,
+    });
+    return;
+  }
+
+  res.render('workspaceContent', {
+    workspace,
+    folders,
+    files: files,
+    path: contentPath,
+  });
+}
+
+async function createFolder(req, res) {
+  const errors = validationResult(req);
+  const { workspace_name, create_path, name } = req.body;
+  if (!errors.isEmpty()) {
+    req.flash('createFolderErrors', errors.array());
+    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    return;
+  }
+
+  const exists = await folderExists(name, req.user.id);
+  if (exists) {
+    req.flash('createFolderErrors', [
+      { msg: 'Folder with this name already exists' },
+    ]);
+    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    return;
+  }
+
+  const parentFolder = await prisma.folder.findFirst({
+    where: {
+      path: create_path,
+      workspace: {
+        name: workspace_name,
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+  });
+
+  //child folder
+  await prisma.folder.create({
+    data: {
+      path: customPathJoin(create_path.toLowerCase(), name.toLowerCase()),
+      name: name.toLowerCase(),
+      workspace: {
+        connect: {
+          name_userId: {
+            name: workspace_name,
+            userId: req.user.id,
+          },
+        },
+      },
+      parentFolder: {
+        connect: {
+          id: parentFolder.id,
+        },
+      },
+    },
+  });
+
+  res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+}
+
+async function workspaceExists(workspaceName, userId) {
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: userId,
+      },
+    },
+  });
+
+  return !!workspace;
+}
+
+async function folderExists(folderPath, userId) {
+  const folder = await prisma.folder.findFirst({
+    where: {
+      path: folderPath,
+      workspace: {
+        user: {
+          id: userId,
+        },
+      },
+    },
+  });
+
+  return !!folder;
 }
 
 async function fileExists(filePath, userId) {
@@ -136,7 +299,31 @@ async function fileExists(filePath, userId) {
   return !!file;
 }
 
+function hashFileName(fileName, userId) {
+  return crypto
+    .createHash('sha256')
+    .update(fileName + userId)
+    .digest('hex');
+}
+
+const createFolderSchema = [
+  body('name')
+    .isLength({ min: 3, max: 15 })
+    .withMessage('The name of the folder must be between 3 and 15 characters'),
+];
+
+const createWorkspaceSchema = [
+  body('name')
+    .isLength({ min: 3, max: 8 })
+    .withMessage('Name must be between 3 to 8 characters long'),
+  body('description')
+    .isLength({ max: 30 })
+    .withMessage('Description is too long (less that 30 characters)'),
+];
+
 module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
   uploadFiles: [upload.array('upload_content', 10), uploadFiles],
+  createFolder: [createFolderSchema, createFolder],
+  getWorkspaceContent,
 };

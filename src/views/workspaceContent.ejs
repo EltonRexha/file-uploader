@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+
+    <title>FILEUP | <%=workspace.name%></title>
+  </head>
+  <body>
+    <div class="sm:flex">
+      <%-include('./partials/sidebar.ejs', {workspace: true, workspaces:
+      locals.workspaces})%> <%-include('./partials/createFolderModal.ejs',
+      {showFolderModal: locals.showFolderModal, path: locals.path,
+      workspaceName: locals.workspace.name, errors:
+      locals.createFolderErrors})%>
+      <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
+        <div class="p-2 pt-0">
+          <button
+            type="button"
+            onclick="showSideBar()"
+            class="block p-2 w-full sm:hidden hover:bg-gray-100"
+          >
+            <svg
+              class="w-6 h-6"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+              ></path>
+            </svg>
+          </button>
+          <h1 class="text-xl mt-4 ml-10 font-semibold text-zinc-600">
+            <%=workspace.name%>
+          </h1>
+
+          <div class="mt-10 ml-4 sm:ml-10 flex gap-4">
+            <form
+              action="/workspace/upload"
+              method="post"
+              enctype="multipart/form-data"
+              id="upload-form"
+            >
+              <input
+                type="text"
+                name="upload_path"
+                class="hidden"
+                value="<%=locals.path%>"
+              />
+              <input
+                type="file"
+                name="upload_content"
+                class="hidden"
+                id="file-input"
+                multiple
+              />
+              <input
+                type="text"
+                name="workspace"
+                class="hidden"
+                id="workspace-name-input"
+                value="<%=locals.workspace.name%>"
+              />
+              <button
+                type="button"
+                id="upload-btn"
+                class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
+              >
+                <div class="w-5 mb-2">
+                  <img
+                    src="/images/icons/upload.svg"
+                    alt="upload"
+                    class="w-[100%]"
+                  />
+                </div>
+                <p class="hidden sm:block">Upload or drop</p>
+                <p class="block sm:hidden">Upload</p>
+              </button>
+            </form>
+
+            <button
+              id="create-folder-btn"
+              class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
+            >
+              <div class="w-5 mb-2">
+                <img
+                  src="/images/icons/plus.svg"
+                  alt="upload"
+                  class="w-[100%]"
+                />
+              </div>
+              <p class="hidden sm:block">Create folder</p>
+              <p class="block sm:hidden">Folder</p>
+            </button>
+          </div>
+        </div>
+        <div
+          class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mx-auto mt-10"
+        >
+          <% locals.folders.forEach((folder) => {%>
+          <a href="?path=<%=folder.path%>">
+            <div class="w-40 flex flex-col items-center p-4">
+              <div class="w-20 h-20 cursor-pointer">
+                <img src="/images/icons/folder.svg" alt="" class="w-[100%]" />
+              </div>
+              <p class="text-center">
+                <%= folder.name.length > 12 ? folder.name.slice(0, 12) + "..." :
+                folder.name.split('.')[0] %>
+              </p>
+            </div>
+          </a>
+
+          <%}) %><% locals.files.forEach((file) => { %>
+          <div class="w-40 flex flex-col items-center p-4">
+            <div class="w-20 h-20 cursor-pointer">
+              <img
+                src="<%= 
+                      {
+                        'js': '/images/icons/fileIcons/code.png',
+                        'css': '/images/icons/fileIcons/code.png',
+                        'html': '/images/icons/fileIcons/code.png',
+                        'php': '/imagesicons/fileIcons/code.png',
+                        'c': '/images/icons/fileIcons/code.png',
+                        'cpp': '/images/icons/fileIcons/code.png',
+                        'png': '/images/icons/fileIcons/image.png',
+                        'svg': '/images/icons/fileIcons/image.png',
+                        'jpeg': '/images/icons/fileIcons/image.png',
+                        'webp': '/images/icons/fileIcons/image.png',
+                        'pdf': '/images/icons/fileIcons/pdf.png',
+                        'ppt': '/images/icons/fileIcons/ppt.png',
+                        'exe': '/images/icons/fileIcons/exe.png',
+                        'xls': '/images/icons/fileIcons/xls.png',
+                        'sql': '/images/icons/fileIcons/sql.png',
+                        'wav': '/images/icons/fileIcons/wav.png',
+                        'word': '/images/icons/fileIcons/word.png',
+                        'zip': '/images/icons/fileIcons/zip.png',
+                      }[file.name.split('.').pop()] || '/images/icons/fileIcons/raw.png'
+                %>"
+                alt=""
+                class="w-[100%]"
+              />
+            </div>
+            <p class="text-center">
+              <%= file.name.length > 12 ? file.name.slice(0, 12) + "..." :
+              file.name.split('.')[0] %>
+            </p>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const notyf = new Notyf();
+
+        const uploadBtn = document.querySelector('#upload-btn');
+        const fileInput = document.querySelector('#file-input');
+        const uploadForm = document.querySelector('#upload-form');
+
+        uploadBtn.addEventListener('click', (e) => {
+          fileInput.click();
+          e.preventDefault();
+        });
+
+        //Drag and drop for the whole thang
+
+        const dropZone = document.querySelector('#drop-zone');
+
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.style.border = '2px dotted blue';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+          dropZone.style.border = 'none';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const files = e.dataTransfer.files;
+          handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', () => {
+          uploadForm.submit();
+        });
+
+        function handleFiles(files) {
+          const dataTransfer = new DataTransfer();
+          let upload = true;
+          Array.from(files).forEach((file) => {
+            if (file.size === 0) {
+              notyf.error('Please drop only files (not folders)');
+              upload = false;
+              return;
+            }
+            dataTransfer.items.add(file);
+          });
+
+          if (upload) {
+            fileInput.files = dataTransfer.files;
+            uploadForm.submit();
+          }
+        }
+
+        const createFolderBtn = document.querySelector('#create-folder-btn');
+        const createFolderModal = document.querySelector(
+          '#create-folder-modal'
+        );
+
+        createFolderBtn.addEventListener('click', () => {
+          createFolderModal.style.display = 'block';
+        });
+      })();
+    </script>
+  </body>
+</html>

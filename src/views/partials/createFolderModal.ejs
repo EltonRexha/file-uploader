@@ -1,6 +1,6 @@
 <div
-  class="<%=locals.showCreateWorkspaceModal ? 'block' : 'hidden' %>"
-  id="create-workspace-modal"
+  class="<%=locals.showFolderModal ? 'block' : 'hidden' %> "
+  id="create-folder-modal"
 >
   <div
     class="flex items-center justify-center absolute z-50 top-0 right-0 bottom-0 left-0 bg-zinc-900 bg-opacity-30"
@@ -8,10 +8,10 @@
     <div
       class="bg-zinc-50 w-full sm:w-[70%] md:w-[30%] p-10 rounded-md relative"
     >
-      <form action="/workspace/create" method="post" novalidate>
+      <form action="/workspace/folder/create" method="post" novalidate>
         <button
           class="absolute top-3 right-3"
-          id="close-workspace-btn"
+          id="close-folder-btn"
           type="button"
         >
           <div class="w-5">
@@ -28,27 +28,13 @@
               placeholder="Name"
               required
             />
+            <input type="text" name="workspace_name" class="hidden" value="<%=locals.workspaceName%>" />
+            <input type="text" name="create_path" class="hidden" value="<%=locals.path%>" />
             <label
               for="name"
               class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
             >
-              Workspace Name
-            </label>
-          </div>
-          <div class="relative z-0 w-full mb-5 group">
-            <input
-              type="text"
-              name="description"
-              id="text"
-              class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer placeholder-transparent"
-              placeholder="text"
-              required
-            />
-            <label
-              for="description"
-              class="absolute text-sm text-gray-500 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-blue-600"
-            >
-              Short description
+              Folder name
             </label>
           </div>
 
@@ -75,14 +61,12 @@
 </div>
 <script>
   (() => {
-    const closeBtn = document.querySelector('#close-workspace-btn');
-    const createWorkspaceModal = document.querySelector(
-      '#create-workspace-modal'
-    );
+    const closeBtn = document.querySelector('#close-folder-btn');
+    const createFolderModal = document.querySelector('#create-folder-modal');
 
     closeBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      createWorkspaceModal.style.display = 'none';
+      createFolderModal.style.display = 'none';
     });
   })();
 </script>
