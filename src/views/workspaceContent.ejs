@@ -47,7 +47,12 @@
               enctype="multipart/form-data"
               id="upload-form"
             >
-              <input type="text" name="upload_path" class="hidden" value="<%=locals.path%>" />
+              <input
+                type="text"
+                name="upload_path"
+                class="hidden"
+                value="<%=locals.path%>"
+              />
               <input
                 type="file"
                 name="upload_content"
@@ -96,7 +101,7 @@
           </div>
         </div>
         <div
-          class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-[93%] mx-auto mt-10"
+          class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mx-auto mt-10"
         >
           <% locals.folders.forEach((folder) => {%>
           <a href="?path=<%=folder.path%>">
@@ -188,18 +193,19 @@
 
         function handleFiles(files) {
           const dataTransfer = new DataTransfer();
-          let displayModal = true;
+          let upload = true;
           Array.from(files).forEach((file) => {
             if (file.size === 0) {
               notyf.error('Please drop only files (not folders)');
-              displayModal = false;
+              upload = false;
               return;
             }
             dataTransfer.items.add(file);
           });
 
-          if (displayModal) {
+          if (upload) {
             fileInput.files = dataTransfer.files;
+            uploadForm.submit();
           }
         }
 
