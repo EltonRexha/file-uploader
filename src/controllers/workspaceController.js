@@ -5,6 +5,7 @@ const supabase = require('../utils/supabase');
 const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
+const { BlobReader, BlobWriter, ZipWriter } = require('@zip.js/zip.js');
 
 function customPathJoin(...segments) {
   const joinedPath = path.join(...segments);
@@ -20,10 +21,10 @@ async function createWorkspace(req, res, next) {
     return;
   }
 
-  const { name, description } = req.body;
+  const { name: workspaceName, description: workspaceDescription } = req.body;
   const user = req.user;
 
-  const exists = await workspaceExists(name, user.id);
+  const exists = await workspaceExists(workspaceName, user.id);
 
   if (exists) {
     req.flash('createWorkspaceErrors', [
@@ -31,6 +32,19 @@ async function createWorkspace(req, res, next) {
     ]);
 
     res.redirect(`/dashboard/home/allFiles?workspaceModal=true`);
+    return;
+  }
+
+  //create the folder for the workspace and define a log for it
+  const { error } = await supabase.storage.from(process.env.BUCKET_NAME).upload(
+    customPathJoin(req.user.id, workspaceName, 'log.txt'),
+    new Blob([`createdAt: ${new Date()}, workspace name: ${workspaceName}`], {
+      type: 'text/plain',
+    })
+  );
+
+  if (error) {
+    next(HttpError('An error happened during creation of your workspace', 500));
     return;
   }
 
@@ -47,8 +61,8 @@ async function createWorkspace(req, res, next) {
           path: '/',
         },
       },
-      name,
-      description,
+      name: workspaceName,
+      description: workspaceDescription,
     },
   });
 
@@ -89,11 +103,19 @@ async function uploadFiles(req, res, next) {
     }
 
     // Upload to Supabase
-    await supabase.storage
+    const { error } = await supabase.storage
       .from(process.env.BUCKET_NAME)
-      .upload(customPathJoin(req.user.id, filePath), file.buffer, {
-        contentType: file.mimetype,
-      });
+      .upload(
+        customPathJoin(req.user.id, workspaceName, filePath),
+        file.buffer,
+        {
+          contentType: file.mimetype,
+        }
+      );
+
+    if (error) {
+      throw new HttpError('Error uploading your files', 500);
+    }
 
     // Query the database
     await prisma.file.create({
@@ -285,6 +307,10 @@ async function createFolder(req, res) {
   res.redirect(`/workspace/${workspaceName}?path=${createPath}`);
 }
 
+async function downloadWorkspace(req, res, next) {
+  
+}
+
 async function workspaceExists(workspaceName, userId) {
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -354,5 +380,6 @@ module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
   uploadFiles: [upload.array('upload_content', 10), uploadFiles],
   createFolder: [createFolderSchema, createFolder],
+  downloadWorkspace,
   getWorkspaceContent,
 };
