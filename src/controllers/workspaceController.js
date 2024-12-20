@@ -75,11 +75,11 @@ async function uploadFiles(req, res, next) {
       return;
     }
 
-    const workspace = await prisma.workspace.findFirst({
+    const workspace = await prisma.workspace.findUnique({
       where: {
-        name: workspaceName,
-        user: {
-          id: req.user.id,
+        name_userId: {
+          name: workspaceName,
+          userId: req.user.id,
         },
       },
     });
@@ -235,7 +235,12 @@ async function createFolder(req, res) {
     return;
   }
 
-  const exists = await folderExists(folderName, req.user.id);
+  const pathToFolder = customPathJoin(
+    createPath.toLowerCase(),
+    folderName.toLowerCase()
+  );
+
+  const exists = await folderExists(pathToFolder, req.user.id);
   if (exists) {
     req.flash('createFolderErrors', [
       { msg: 'Folder with this name already exists' },
@@ -259,7 +264,7 @@ async function createFolder(req, res) {
   //child folder
   await prisma.folder.create({
     data: {
-      path: customPathJoin(createPath.toLowerCase(), folderName.toLowerCase()),
+      path: pathToFolder,
       name: folderName.toLowerCase(),
       workspace: {
         connect: {
@@ -296,7 +301,7 @@ async function workspaceExists(workspaceName, userId) {
 async function folderExists(folderPath, userId) {
   const folder = await prisma.folder.findFirst({
     where: {
-      path: folderPath.toLowerCase(),
+      path: folderPath,
       workspace: {
         user: {
           id: userId,

@@ -40,7 +40,7 @@
             <%=workspace.name%>
           </h1>
 
-          <div class="mt-10 ml-4 sm:ml-10 flex gap-4">
+          <div class="mt-10 ml-4 sm:ml-10 justify-center sm:justify-normal flex flex-wrap gap-4">
             <form
               action="/workspace/upload"
               method="post"
@@ -98,10 +98,24 @@
               <p class="hidden sm:block">Create folder</p>
               <p class="block sm:hidden">Folder</p>
             </button>
+
+            <button
+              id="download-btn"
+              class="border-zinc-200 border-2 hover:bg-zinc-200 font-medium text-sm text-zinc-800 p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
+            >
+              <div class="w-5 mb-2">
+                <img
+                  src="/images/icons/download.svg"
+                  alt="upload"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Download</p>
+            </button>
           </div>
         </div>
         <div
-          class="grid place-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mx-auto mt-10"
+          class="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mx-auto mt-10"
         >
           <% locals.folders.forEach((folder) => {%>
           <a href="?path=<%=folder.path%>">
