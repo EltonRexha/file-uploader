@@ -246,7 +246,7 @@ async function getWorkspaceContent(req, res, next) {
     folders,
     files: files,
     path: contentPath,
-    uploadErrors
+    uploadErrors,
   });
 }
 
@@ -393,6 +393,94 @@ async function downloadFolderHelper(path, workspace, archive) {
   await Promise.all(promises);
 }
 
+async function deleteFolder(req, res, next) {
+  const { workspace_name: workspaceName, path: folderPath } = req.body;
+
+  const supabaseFolderPath = customPathJoin(
+    req.user.id,
+    workspaceName,
+    folderPath
+  );
+  const exists = folderExists(folderPath, req.user.id);
+
+  if (!exists) {
+    next(new HttpError('Something went wrong deleting folder', 500));
+    return;
+  }
+
+  const { data, error: listError } = await supabase.storage
+    .from(process.env.BUCKET_NAME)
+    .list(supabaseFolderPath);
+
+  if (listError) {
+    next(new HttpError('Something went wrong deleting folder', 500));
+    return;
+  } else {
+    const filesToDelete = data.map((file) =>
+      customPathJoin(supabaseFolderPath, file.name)
+    );
+
+    const { error } = await supabase.storage
+      .from(process.env.BUCKET_NAME)
+      .remove(filesToDelete);
+
+    if (error) {
+      next(new HttpError('Something went wrong deleting folder', 500));
+      return;
+    }
+  }
+
+  await prisma.folder.deleteMany({
+    where: {
+      workspace: {
+        name: workspaceName,
+        user: {
+          id: req.user.id,
+        },
+      },
+      path: folderPath,
+    },
+  });
+
+  res.redirect(`/workspace/${workspaceName}`);
+}
+
+async function deleteFile(req, res, next) {
+  const { workspace_name: workspaceName, path: filePath } = req.body;
+
+  const exists = fileExists(filePath, req.user.id);
+
+  if (!exists) {
+    next(new HttpError('Something went wrong deleting file', 500));
+    return;
+  }
+
+  const { error } = await supabase.storage
+    .from(process.env.BUCKET_NAME)
+    .remove([customPathJoin(req.user.id, workspaceName, filePath)]);
+
+  if (error) {
+    next(new HttpError('Something went wrong deleting file', 500));
+    return;
+  }
+
+  await prisma.file.deleteMany({
+    where: {
+      folder: {
+        workspace: {
+          name: workspaceName,
+          user: {
+            id: req.user.id,
+          },
+        },
+      },
+      path: filePath,
+    },
+  });
+
+  res.redirect(`/workspace/${workspaceName}`);
+}
+
 async function workspaceExists(workspaceName, userId) {
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -464,4 +552,6 @@ module.exports = {
   createFolder: [createFolderSchema, createFolder],
   downloadWorkspace,
   getWorkspaceContent,
+  deleteFolder,
+  deleteFile,
 };

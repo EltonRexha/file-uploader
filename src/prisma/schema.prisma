@@ -56,7 +56,7 @@ model Folder {
   workspace      Workspace  @relation(fields: [workspaceId], references: [id])
   workspaceId    String     @map("workspace_id")
   childFolders   Folder[]   @relation("folders")
-  parentFolder   Folder?    @relation("folders", fields: [parentFolderId], references: [id])
+  parentFolder   Folder?    @relation("folders", fields: [parentFolderId], references: [id], onDelete: Cascade)
   parentFolderId String?    @map("parent_folder_id")
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
@@ -75,12 +75,13 @@ model File {
   mimeType  String     @map("mime_type")
   byte_size Int
   path      String
-  folder    Folder     @relation(fields: [folderId], references: [id])
+  folder    Folder     @relation(fields: [folderId], references: [id], onDelete: Cascade)
   folderId  String     @map("folder_id")
   createdAt DateTime   @default(now()) @map("created_at")
   updatedAt DateTime   @updatedAt @map("updated_at")
   Activity  Activity[]
 
+  @@unique([path, folderId])
   @@map("files")
 }
 
@@ -89,11 +90,11 @@ model Activity {
   activity    ActivityType
   workspace   Workspace    @relation(fields: [workspaceId], references: [id])
   user        User         @relation(fields: [userId], references: [id])
-  folder      Folder       @relation(fields: [folderId], references: [id])
-  file        File?        @relation(fields: [fileId], references: [id])
+  folder      Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  file        File?        @relation(fields: [fileId], references: [id], onDelete: SetNull)
   userId      String       @map("user_id")
   workspaceId String       @map("workspace_id")
-  folderId    String       @map("folder_id")
+  folderId    String?      @map("folder_id")
   fileId      String?      @map("file_id")
 
   @@map("activities")
