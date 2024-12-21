@@ -5,6 +5,7 @@ const supabase = require('../utils/supabase');
 const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
+const archiver = require('archiver');
 
 function customPathJoin(...segments) {
   const joinedPath = path.join(...segments);
@@ -20,20 +21,30 @@ async function createWorkspace(req, res, next) {
     return;
   }
 
-  const { name, description } = req.body;
+  const { name: workspaceName, description: workspaceDescription } = req.body;
   const user = req.user;
 
-  const exists = await prisma.workspace.findFirst({
-    where: {
-      name: name,
-      user: {
-        id: user.id,
-      },
-    },
-  });
+  const exists = await workspaceExists(workspaceName, user.id);
 
   if (exists) {
-    next(new HttpError('A workspace with this name already exists', 409));
+    req.flash('createWorkspaceErrors', [
+      { msg: 'A workspace with this name already exists' },
+    ]);
+
+    res.redirect(`/dashboard/home/allFiles?workspaceModal=true`);
+    return;
+  }
+
+  //create the folder for the workspace and define a log for it
+  const { error } = await supabase.storage.from(process.env.BUCKET_NAME).upload(
+    customPathJoin(req.user.id, workspaceName, 'log.txt'),
+    new Blob([`createdAt: ${new Date()}, workspace name: ${workspaceName}`], {
+      type: 'text/plain',
+    })
+  );
+
+  if (error) {
+    next(HttpError('An error happened during creation of your workspace', 500));
     return;
   }
 
@@ -50,8 +61,8 @@ async function createWorkspace(req, res, next) {
           path: '/',
         },
       },
-      name,
-      description,
+      name: workspaceName,
+      description: workspaceDescription,
     },
   });
 
@@ -59,30 +70,29 @@ async function createWorkspace(req, res, next) {
 }
 
 async function uploadFiles(req, res, next) {
-  const { upload_path, workspace: workspaceName } = req.body;
+  const { upload_path: uploadPath, workspace: workspaceName } = req.body;
   const files = req.files;
 
+  let errs = [];
   for (const file of files) {
     const hashedFilename = hashFileName(file.originalname, req.user.id);
-    const filePath = customPathJoin(upload_path, hashedFilename);
+    const filePath = customPathJoin(uploadPath, hashedFilename);
 
     const exists = await fileExists(filePath);
 
     if (exists) {
-      next(
-        new HttpError(
-          `A file with the same name: ${file.originalname} has already been uploaded`,
-          409
-        )
-      );
-      return;
+      errs.push({
+        msg: `A file with the same name: ${file.originalname} has already been uploaded`,
+      });
+
+      continue;
     }
 
-    const workspace = await prisma.workspace.findFirst({
+    const workspace = await prisma.workspace.findUnique({
       where: {
-        name: workspaceName,
-        user: {
-          id: req.user.id,
+        name_userId: {
+          name: workspaceName,
+          userId: req.user.id,
         },
       },
     });
@@ -92,11 +102,19 @@ async function uploadFiles(req, res, next) {
     }
 
     // Upload to Supabase
-    await supabase.storage
+    const { error } = await supabase.storage
       .from(process.env.BUCKET_NAME)
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
-      });
+      .upload(
+        customPathJoin(req.user.id, workspaceName, filePath),
+        file.buffer,
+        {
+          contentType: file.mimetype,
+        }
+      );
+
+    if (error) {
+      throw new HttpError('Error uploading your files', 500);
+    }
 
     // Query the database
     await prisma.file.create({
@@ -110,7 +128,30 @@ async function uploadFiles(req, res, next) {
           connect: {
             workspaceId_path: {
               workspaceId: workspace.id,
-              path: upload_path,
+              path: uploadPath,
+            },
+          },
+        },
+        Activity: {
+          create: {
+            activity: 'UPLOAD',
+            folder: {
+              connect: {
+                workspaceId_path: {
+                  workspaceId: workspace.id,
+                  path: uploadPath,
+                },
+              },
+            },
+            user: {
+              connect: {
+                id: req.user.id,
+              },
+            },
+            workspace: {
+              connect: {
+                id: workspace.id,
+              },
             },
           },
         },
@@ -118,7 +159,13 @@ async function uploadFiles(req, res, next) {
     });
   }
 
-  res.redirect(`/workspace/${workspaceName}?path=${upload_path}`);
+  if (errs.length) {
+    req.flash('uploadErrors', errs);
+    res.redirect(`/workspace/${workspaceName}?path=${uploadPath}`);
+    return;
+  }
+
+  res.redirect(`/workspace/${workspaceName}?path=${uploadPath}`);
 }
 
 async function getWorkspaceContent(req, res, next) {
@@ -128,7 +175,7 @@ async function getWorkspaceContent(req, res, next) {
   }
 
   const exists = await workspaceExists(workspaceName, req.user.id);
-  if(!exists){
+  if (!exists) {
     next(new HttpError('Looks like you are lost...', 404));
     return;
   }
@@ -137,7 +184,7 @@ async function getWorkspaceContent(req, res, next) {
 
   const fExists = await folderExists(contentPath, req.user.id);
 
-  if(!fExists){
+  if (!fExists) {
     next(new HttpError('Looks like you are lost...', 400));
     return;
   }
@@ -168,9 +215,7 @@ async function getWorkspaceContent(req, res, next) {
   const files = await prisma.file.findMany({
     where: {
       folder: {
-        path: {
-          startsWith: contentPath,
-        },
+        path: contentPath,
         workspace: {
           name: workspaceName,
           user: {
@@ -194,37 +239,49 @@ async function getWorkspaceContent(req, res, next) {
     return;
   }
 
+  const uploadErrors = req.flash('uploadErrors');
+
   res.render('workspaceContent', {
     workspace,
     folders,
     files: files,
     path: contentPath,
+    uploadErrors,
   });
 }
 
 async function createFolder(req, res) {
   const errors = validationResult(req);
-  const { workspace_name, create_path, name } = req.body;
+  const {
+    workspace_name: workspaceName,
+    create_path: createPath,
+    name: folderName,
+  } = req.body;
   if (!errors.isEmpty()) {
     req.flash('createFolderErrors', errors.array());
-    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    res.redirect(`/workspace/${workspaceName}?path=${createPath}`);
     return;
   }
 
-  const exists = await folderExists(name, req.user.id);
+  const pathToFolder = customPathJoin(
+    createPath.toLowerCase(),
+    folderName.toLowerCase()
+  );
+
+  const exists = await folderExists(pathToFolder, req.user.id);
   if (exists) {
     req.flash('createFolderErrors', [
       { msg: 'Folder with this name already exists' },
     ]);
-    res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+    res.redirect(`/workspace/${workspaceName}?path=${createPath}`);
     return;
   }
 
   const parentFolder = await prisma.folder.findFirst({
     where: {
-      path: create_path,
+      path: createPath,
       workspace: {
-        name: workspace_name,
+        name: workspaceName,
         user: {
           id: req.user.id,
         },
@@ -235,12 +292,12 @@ async function createFolder(req, res) {
   //child folder
   await prisma.folder.create({
     data: {
-      path: customPathJoin(create_path.toLowerCase(), name.toLowerCase()),
-      name: name.toLowerCase(),
+      path: pathToFolder,
+      name: folderName.toLowerCase(),
       workspace: {
         connect: {
           name_userId: {
-            name: workspace_name,
+            name: workspaceName,
             userId: req.user.id,
           },
         },
@@ -253,7 +310,175 @@ async function createFolder(req, res) {
     },
   });
 
-  res.redirect(`/workspace/${workspace_name}?path=${create_path}`);
+  res.redirect(`/workspace/${workspaceName}?path=${createPath}`);
+}
+
+async function downloadWorkspace(req, res, next) {
+  const { workspaceName } = req.params;
+
+  const exists = await workspaceExists(workspaceName, req.user.id);
+  if (!exists) {
+    next(new HttpError('Workspace not found', 404));
+    return;
+  }
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: req.user.id,
+      },
+    },
+  });
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${workspace.name}.zip"`
+  );
+
+  archive.pipe(res);
+
+  await downloadFolderHelper('/', workspace, archive);
+
+  archive.finalize();
+}
+
+async function downloadFolderHelper(path, workspace, archive) {
+  const folders = await prisma.folder.findMany({
+    where: {
+      parentFolder: {
+        path: path,
+      },
+      workspace: {
+        id: workspace.id,
+      },
+    },
+  });
+
+  const files = await prisma.file.findMany({
+    where: {
+      folder: {
+        path: path,
+        workspace: {
+          id: workspace.id,
+        },
+      },
+    },
+  });
+
+  for (let file of files) {
+    const { data, error } = await supabase.storage
+      .from(process.env.BUCKET_NAME)
+      .download(customPathJoin(workspace.userId, workspace.name, file.path));
+
+    if (error) {
+      throw new HttpError('Error downloading files', 500);
+    }
+
+    const buffer = await data.arrayBuffer();
+    archive.append(Buffer.from(buffer), {
+      name: customPathJoin(path, file.name),
+    });
+  }
+
+  const promises = [];
+
+  for (let folder of folders) {
+    promises.push(downloadFolderHelper(folder.path, workspace, archive));
+  }
+
+  await Promise.all(promises);
+}
+
+async function deleteFolder(req, res, next) {
+  const { workspace_name: workspaceName, path: folderPath } = req.body;
+
+  const supabaseFolderPath = customPathJoin(
+    req.user.id,
+    workspaceName,
+    folderPath
+  );
+  const exists = folderExists(folderPath, req.user.id);
+
+  if (!exists) {
+    next(new HttpError('Something went wrong deleting folder', 500));
+    return;
+  }
+
+  const { data, error: listError } = await supabase.storage
+    .from(process.env.BUCKET_NAME)
+    .list(supabaseFolderPath);
+
+  if (listError) {
+    next(new HttpError('Something went wrong deleting folder', 500));
+    return;
+  } else {
+    const filesToDelete = data.map((file) =>
+      customPathJoin(supabaseFolderPath, file.name)
+    );
+
+    const { error } = await supabase.storage
+      .from(process.env.BUCKET_NAME)
+      .remove(filesToDelete);
+
+    if (error) {
+      next(new HttpError('Something went wrong deleting folder', 500));
+      return;
+    }
+  }
+
+  await prisma.folder.deleteMany({
+    where: {
+      workspace: {
+        name: workspaceName,
+        user: {
+          id: req.user.id,
+        },
+      },
+      path: folderPath,
+    },
+  });
+
+  res.redirect(`/workspace/${workspaceName}`);
+}
+
+async function deleteFile(req, res, next) {
+  const { workspace_name: workspaceName, path: filePath } = req.body;
+
+  const exists = fileExists(filePath, req.user.id);
+
+  if (!exists) {
+    next(new HttpError('Something went wrong deleting file', 500));
+    return;
+  }
+
+  const { error } = await supabase.storage
+    .from(process.env.BUCKET_NAME)
+    .remove([customPathJoin(req.user.id, workspaceName, filePath)]);
+
+  if (error) {
+    next(new HttpError('Something went wrong deleting file', 500));
+    return;
+  }
+
+  await prisma.file.deleteMany({
+    where: {
+      folder: {
+        workspace: {
+          name: workspaceName,
+          user: {
+            id: req.user.id,
+          },
+        },
+      },
+      path: filePath,
+    },
+  });
+
+  res.redirect(`/workspace/${workspaceName}`);
 }
 
 async function workspaceExists(workspaceName, userId) {
@@ -325,5 +550,8 @@ module.exports = {
   createWorkspace: [createWorkspaceSchema, createWorkspace],
   uploadFiles: [upload.array('upload_content', 10), uploadFiles],
   createFolder: [createFolderSchema, createFolder],
+  downloadWorkspace,
   getWorkspaceContent,
+  deleteFolder,
+  deleteFile,
 };
