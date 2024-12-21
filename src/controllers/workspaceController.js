@@ -73,6 +73,7 @@ async function uploadFiles(req, res, next) {
   const { upload_path: uploadPath, workspace: workspaceName } = req.body;
   const files = req.files;
 
+  let errs = [];
   for (const file of files) {
     const hashedFilename = hashFileName(file.originalname, req.user.id);
     const filePath = customPathJoin(uploadPath, hashedFilename);
@@ -80,13 +81,11 @@ async function uploadFiles(req, res, next) {
     const exists = await fileExists(filePath);
 
     if (exists) {
-      next(
-        new HttpError(
-          `A file with the same name: ${file.originalname} has already been uploaded`,
-          409
-        )
-      );
-      return;
+      errs.push({
+        msg: `A file with the same name: ${file.originalname} has already been uploaded`,
+      });
+
+      continue;
     }
 
     const workspace = await prisma.workspace.findUnique({
@@ -158,6 +157,12 @@ async function uploadFiles(req, res, next) {
         },
       },
     });
+  }
+
+  if (errs.length) {
+    req.flash('uploadErrors', errs);
+    res.redirect(`/workspace/${workspaceName}?path=${uploadPath}`);
+    return;
   }
 
   res.redirect(`/workspace/${workspaceName}?path=${uploadPath}`);
@@ -234,11 +239,14 @@ async function getWorkspaceContent(req, res, next) {
     return;
   }
 
+  const uploadErrors = req.flash('uploadErrors');
+
   res.render('workspaceContent', {
     workspace,
     folders,
     files: files,
     path: contentPath,
+    uploadErrors
   });
 }
 

@@ -173,6 +173,11 @@
         </div>
       </div>
     </div>
+    <div
+      id="uploadErrors"
+      data-uploadErrors="<%=JSON.stringify(locals.uploadErrors)%>"
+      class="hidden"
+    ></div>
     <script>
       (() => {
         const notyf = new Notyf();
@@ -235,6 +240,16 @@
         createFolderBtn.addEventListener('click', () => {
           createFolderModal.style.display = 'block';
         });
+
+        const uploadErrorsElement = document.querySelector('#uploadErrors');
+        const uploadErrors = JSON.parse(
+          uploadErrorsElement.getAttribute('data-uploadErrors')
+        );
+        if (uploadErrors) {
+          uploadErrors.forEach(({ msg }) => {
+            notyf.error(msg);
+          });
+        }
       })();
     </script>
   </body>
