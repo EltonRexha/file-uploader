@@ -5,7 +5,7 @@ const supabase = require('../utils/supabase');
 const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
-const { BlobReader, BlobWriter, ZipWriter } = require('@zip.js/zip.js');
+const archiver = require('archiver');
 
 function customPathJoin(...segments) {
   const joinedPath = path.join(...segments);
@@ -210,9 +210,7 @@ async function getWorkspaceContent(req, res, next) {
   const files = await prisma.file.findMany({
     where: {
       folder: {
-        path: {
-          startsWith: contentPath,
-        },
+        path: contentPath,
         workspace: {
           name: workspaceName,
           user: {
@@ -308,7 +306,83 @@ async function createFolder(req, res) {
 }
 
 async function downloadWorkspace(req, res, next) {
-  
+  const { workspaceName } = req.params;
+
+  const exists = await workspaceExists(workspaceName, req.user.id);
+  if (!exists) {
+    next(new HttpError('Workspace not found', 404));
+    return;
+  }
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      name: workspaceName,
+      user: {
+        id: req.user.id,
+      },
+    },
+  });
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${workspace.name}.zip"`
+  );
+
+  archive.pipe(res);
+
+  await downloadFolderHelper('/', workspace, archive);
+
+  archive.finalize();
+}
+
+async function downloadFolderHelper(path, workspace, archive) {
+  const folders = await prisma.folder.findMany({
+    where: {
+      parentFolder: {
+        path: path,
+      },
+      workspace: {
+        id: workspace.id,
+      },
+    },
+  });
+
+  const files = await prisma.file.findMany({
+    where: {
+      folder: {
+        path: path,
+        workspace: {
+          id: workspace.id,
+        },
+      },
+    },
+  });
+
+  for (let file of files) {
+    const { data, error } = await supabase.storage
+      .from(process.env.BUCKET_NAME)
+      .download(customPathJoin(workspace.userId, workspace.name, file.path));
+
+    if (error) {
+      throw new HttpError('Error downloading files', 500);
+    }
+
+    const buffer = await data.arrayBuffer();
+    archive.append(Buffer.from(buffer), {
+      name: customPathJoin(path, file.name),
+    });
+  }
+
+  const promises = [];
+
+  for (let folder of folders) {
+    promises.push(downloadFolderHelper(folder.path, workspace, archive));
+  }
+
+  await Promise.all(promises);
 }
 
 async function workspaceExists(workspaceName, userId) {
