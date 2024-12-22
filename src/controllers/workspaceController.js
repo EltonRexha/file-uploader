@@ -240,6 +240,7 @@ async function getWorkspaceContent(req, res, next) {
   }
 
   const uploadErrors = req.flash('uploadErrors');
+  const workspaceJoinCode = req.flash('joinLink');
 
   res.render('workspaceContent', {
     workspace,
@@ -247,6 +248,8 @@ async function getWorkspaceContent(req, res, next) {
     files: files,
     path: contentPath,
     uploadErrors,
+    workspaceJoinCode,
+    showWorkspaceLinkModal: !!workspaceJoinCode.length,
   });
 }
 
@@ -539,7 +542,7 @@ const createFolderSchema = [
 
 const createWorkspaceSchema = [
   body('name')
-    .isLength({ min: 3, max: 8 })
+    .isLength({ min: 3, max: 15 })
     .withMessage('Name must be between 3 to 8 characters long'),
   body('description')
     .isLength({ max: 30 })

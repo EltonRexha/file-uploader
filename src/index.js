@@ -8,6 +8,7 @@ const indexRouter = require('./routes/indexRouter');
 const authRouter = require('./routes/authRouter');
 const dashboardRouter = require('./routes/dashboardRouter');
 const workspaceRouter = require('./routes/workspaceRouter');
+const linkRouter = require('./routes/linkRouter');
 const prisma = require('./db/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const flash = require('connect-flash');
@@ -39,6 +40,7 @@ app.use('/', indexRouter);
 app.use('/', authRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/workspace', workspaceRouter);
+app.use('/link', linkRouter);
 
 //catch all middleware
 // app.use((req, res, next) => {
