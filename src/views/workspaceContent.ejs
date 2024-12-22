@@ -20,7 +20,7 @@
       workspaceName: locals.workspace.name, errors: locals.createFolderErrors})
       %>
 
-      <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
+      <div class="flex-1 border-2 border-transparent m-2 overflow-auto" id="drop-zone">
         <div class="p-2 pt-0">
           <button
             type="button"
@@ -120,6 +120,7 @@
           </div>
         </div>
 
+        <% if(locals.folders?.length || locals.files?.length){%>
         <div
           class="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mx-auto mt-10"
         >
@@ -218,6 +219,11 @@
           </div>
           <% }) %>
         </div>
+        <%}else{%>
+        <div class="flex h-[70%] items-center justify-center">
+          <h1 class="text-zinc-600 font-bold text-2xl">A little to quiet...</h1>
+        </div>
+        <%} %>
       </div>
     </div>
 
