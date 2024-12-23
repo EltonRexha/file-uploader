@@ -6,11 +6,8 @@ const path = require('path');
 const crypto = require('crypto');
 const HttpError = require('../errors/httpError');
 const archiver = require('archiver');
-
-function customPathJoin(...segments) {
-  const joinedPath = path.join(...segments);
-  return joinedPath.replace(/\\/g, '/'); // Replaces backslashes with forward slashes on Windows
-}
+const downloadFolderHelper = require('../utils/downloadFolderHelper');
+const customPathJoin = require('../utils/customPathJoin');
 
 async function createWorkspace(req, res, next) {
   const errors = validationResult(req);
@@ -280,6 +277,21 @@ async function createFolder(req, res) {
     return;
   }
 
+  const { error } = await supabase.storage.from(process.env.BUCKET_NAME).upload(
+    customPathJoin(req.user.id, workspaceName, pathToFolder, 'log.txt'),
+    new Blob([`createdAt: ${new Date()}, workspace name: ${workspaceName}`], {
+      type: 'text/plain',
+    })
+  );
+
+  if (error) {
+    req.flash('createFolderErrors', [
+      { msg: 'Something went wrong creating folder' },
+    ]);
+    res.redirect(`/workspace/${workspaceName}?path=${createPath}`);
+    return;
+  }
+
   const parentFolder = await prisma.folder.findFirst({
     where: {
       path: createPath,
@@ -347,53 +359,6 @@ async function downloadWorkspace(req, res, next) {
   await downloadFolderHelper('/', workspace, archive);
 
   archive.finalize();
-}
-
-async function downloadFolderHelper(path, workspace, archive) {
-  const folders = await prisma.folder.findMany({
-    where: {
-      parentFolder: {
-        path: path,
-      },
-      workspace: {
-        id: workspace.id,
-      },
-    },
-  });
-
-  const files = await prisma.file.findMany({
-    where: {
-      folder: {
-        path: path,
-        workspace: {
-          id: workspace.id,
-        },
-      },
-    },
-  });
-
-  for (let file of files) {
-    const { data, error } = await supabase.storage
-      .from(process.env.BUCKET_NAME)
-      .download(customPathJoin(workspace.userId, workspace.name, file.path));
-
-    if (error) {
-      throw new HttpError('Error downloading files', 500);
-    }
-
-    const buffer = await data.arrayBuffer();
-    archive.append(Buffer.from(buffer), {
-      name: customPathJoin(path, file.name),
-    });
-  }
-
-  const promises = [];
-
-  for (let folder of folders) {
-    promises.push(downloadFolderHelper(folder.path, workspace, archive));
-  }
-
-  await Promise.all(promises);
 }
 
 async function deleteFolder(req, res, next) {

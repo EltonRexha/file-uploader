@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <title>FILEUP | VIEW <%=workspace.name%></title>
+  </head>
+  <body>
+    <div class="flex-1 border-2 border-transparent m-2 overflow-auto">
+      <div class="p-2 pt-0">
+        <div class="flex items-center ml-10 mt-4">
+          <h1 class="text-xl font-semibold text-zinc-600">
+            Workspace: <%=locals.workspace.name%>
+          </h1>
+        </div>
+
+        <div
+          class="mt-10 ml-4 sm:ml-10 justify-center sm:justify-normal flex flex-wrap gap-4"
+        >
+          <a href="/link/download/<%=locals.code%>">
+            <button
+              id="download-btn"
+              class="bg-zinc-900 hover:bg-zinc-800 font-medium text-sm text-white p-4 rounded-lg w-[8rem] sm:w-[10rem] text-left"
+            >
+              <div class="w-5 mb-2">
+                <img
+                  src="/images/icons/download-light.svg"
+                  alt="upload"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Download</p>
+            </button>
+          </a>
+        </div>
+      </div>
+
+      <% if(locals.folders?.length || locals.files?.length){%>
+      <div
+        class="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-[93%] mt-10"
+      >
+        <% locals.folders.forEach((folder) => { %>
+        <div class="w-40 flex flex-col items-center relative p-4">
+          <a href="?path=<%=folder.path%>">
+            <div class="w-20 h-20 cursor-pointer">
+              <img src="/images/icons/folder.svg" alt="" class="w-[100%]" />
+            </div>
+            <p class="text-center">
+              <%= folder.name.length > 12 ? folder.name.slice(0, 12) + "..." :
+              folder.name.split('.')[0] %>
+            </p>
+          </a>
+        </div>
+        <% }) %> <% locals.files.forEach((file) => { %>
+        <div class="w-40 flex flex-col items-center relative p-4">
+          <div class="w-20 h-20 cursor-pointer">
+            <img
+              src="<%= {
+                'js': '/images/icons/fileIcons/code.png',
+                'css': '/images/icons/fileIcons/code.png',
+                'html': '/images/icons/fileIcons/code.png',
+                'pdf': '/images/icons/fileIcons/pdf.png',
+                'png': '/images/icons/fileIcons/image.png',
+                'zip': '/images/icons/fileIcons/zip.png'
+              }[file.name.split('.').pop()] || '/images/icons/fileIcons/default.png' %>"
+              alt=""
+              class="w-[100%]"
+            />
+          </div>
+          <p class="text-center">
+            <%= file.name.length > 12 ? file.name.slice(0, 12) + "..." :
+            file.name.split('.')[0] %>
+          </p>
+        </div>
+        <% }) %>
+      </div>
+      <%}else{%>
+      <div class="ml-10 mt-20">
+        <h1 class="text-zinc-600 font-bold text-2xl">
+          This workspace has no content on it
+        </h1>
+      </div>
+      <%} %>
+    </div>
+  </body>
+</html>

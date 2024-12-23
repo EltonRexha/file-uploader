@@ -1,8 +1,14 @@
 const { Router } = require('express');
-const { createLink } = require('../controllers/linkController');
+const {
+  createLink,
+  viewWorkspaceContentByLink,
+  downloadWorkspace,
+} = require('../controllers/linkController');
 const { isAuth } = require('../middlewares/authMiddleware');
 const router = Router();
 
-router.get('/create/:workspaceName', isAuth, createLink);
+router.post('/create/:workspaceName', isAuth, createLink);
+router.get('/:code', viewWorkspaceContentByLink);
+router.get('/download/:code', downloadWorkspace);
 
 module.exports = router;

@@ -1,11 +1,16 @@
 const { v4: uuid } = require('uuid');
 const prisma = require('../db/client');
 const HttpError = require('../errors/httpError');
+const downloadFolderHelper = require('../utils/downloadFolderHelper');
+const archiver = require('archiver');
 
 async function createLink(req, res, next) {
   const { workspaceName } = req.params;
 
-  const workspaceExist = await workspaceExists(workspaceName, req.user.id);
+  const workspaceExist = await workspaceExistsForUser(
+    workspaceName,
+    req.user.id
+  );
   if (!workspaceExist) {
     next(new HttpError('Workspace not found', 404));
     return;
@@ -36,7 +41,94 @@ async function createLink(req, res, next) {
   res.redirect(`/workspace/${workspaceName}`);
 }
 
-async function workspaceExists(workspaceName, userId) {
+async function viewWorkspaceContentByLink(req, res, next) {
+  const { code } = req.params;
+
+  if (!req.query.path) {
+    res.redirect(`?path=/`);
+  }
+
+  const contentPath = req.query.path;
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      workspaceLink: {
+        some: {
+          join_code: code,
+        },
+      },
+    },
+  });
+
+  if (!workspace) {
+    next(new HttpError('Invalid link', 401));
+    return;
+  }
+
+  const folders = await prisma.folder.findMany({
+    where: {
+      parentFolder: {
+        path: contentPath,
+      },
+      workspace: {
+        id: workspace.id,
+      },
+    },
+  });
+
+  const files = await prisma.file.findMany({
+    where: {
+      folder: {
+        path: contentPath,
+        workspace: {
+          id: workspace.id,
+        },
+      },
+    },
+  });
+
+  res.render('viewWorkspace.ejs', {
+    code,
+    folders,
+    files,
+    workspace,
+  });
+}
+
+async function downloadWorkspace(req, res, next) {
+  const { code } = req.params;
+
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      workspaceLink: {
+        some: {
+          join_code: code,
+        },
+      },
+    },
+  });
+
+  if (!workspace) {
+    next(new HttpError('Invalid share url', 403));
+    return;
+  }
+
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${workspace.name}.zip"`
+  );
+
+  archive.pipe(res);
+
+  await downloadFolderHelper('/', workspace, archive);
+
+  archive.finalize();
+}
+
+async function workspaceExistsForUser(workspaceName, userId) {
   const workspace = await prisma.workspace.findFirst({
     where: {
       name: workspaceName,
@@ -51,4 +143,6 @@ async function workspaceExists(workspaceName, userId) {
 
 module.exports = {
   createLink,
+  viewWorkspaceContentByLink,
+  downloadWorkspace
 };

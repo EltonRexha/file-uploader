@@ -32,7 +32,7 @@ model Workspace {
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
   folder        Folder[]
-  WorkspaceLink WorkspaceLink[]
+  workspaceLink WorkspaceLink[]
   Activity      Activity[]
 
   @@unique([name, userId])
