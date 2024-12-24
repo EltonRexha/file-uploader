@@ -28,11 +28,10 @@ model Workspace {
   description   String
   user          User            @relation(fields: [userId], references: [id])
   userId        String          @map("user_id")
-  views         Int             @default(0)
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
   folder        Folder[]
-  WorkspaceLink WorkspaceLink[]
+  workspaceLink WorkspaceLink[]
   Activity      Activity[]
 
   @@unique([name, userId])
@@ -43,9 +42,11 @@ model WorkspaceLink {
   id          String    @id @default(uuid())
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   workspaceId String    @map("workspace_id")
-  join_code   String
+  join_code   String    @unique
   userAdmin   User      @relation(fields: [userAdminId], references: [id])
   userAdminId String    @map("user_admin_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("workspace_links")
 }

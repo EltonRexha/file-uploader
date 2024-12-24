@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/main.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>FILEUP | Home</title>
+  </head>
+  <body>
+    <div class="sm:flex">
+      <%- include('./partials/sidebar.ejs', { sharedWorkspaces: true,
+      workspaces: locals.workspaces }) %>
+
+      <div class="flex-1 bg-white border-transparent m-2 overflow-auto p-4">
+        <% if (locals.workspacesLinks.length) { %>
+        <h1 class="text-xl font-semibold text-zinc-600 ml-5 mb-10 mt-10">
+          Shared Workspaces Links
+        </h1>
+        <div class="bg-white rounded-md border-2 border-zinc-100 p-4 pb-1">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr>
+                <th
+                  class="text-left text-sm font-medium text-gray-500 py-2 px-4"
+                >
+                  Name
+                </th>
+                <th
+                  class="text-left text-sm font-medium text-gray-500 py-2 px-4"
+                >
+                  Created on
+                </th>
+                <th
+                  class="text-left text-sm font-medium text-gray-500 py-2 px-4"
+                >
+                  Code
+                </th>
+                <th
+                  class="text-right text-sm font-medium text-gray-500 py-2 px-4"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <% locals.workspacesLinks.forEach((workspaceLink) => { %>
+              <tr class="border-t-2 border-zinc-300">
+                <td class="py-3 px-4 text-gray-700">
+                  <%= workspaceLink.workspace.name %>
+                </td>
+                <td class="py-3 px-4 text-gray-500">
+                  <%= workspaceLink.createdAt.toLocaleString('en-GB', { hour12:
+                  true, day: '2-digit', month: '2-digit', year: 'numeric', hour:
+                  '2-digit', minute: '2-digit' }) %>
+                </td>
+                <td class="py-3 px-4 text-gray-500">
+                  <input
+                    type="text"
+                    id="workspace-link-input"
+                    readonly
+                    value="<%= workspaceLink.join_code %>"
+                    class="w-full px-2 py-2 text-gray-800 rounded-md border border-gray-300"
+                  />
+                </td>
+
+                <td class="py-3 px-4 text-right">
+                  <div class="relative">
+                    <button
+                      class="text-gray-600 hover:text-gray-800 mr-1 inline-block text-xl"
+                      onclick="toggleMenu(this)"
+                    >
+                      ...
+                    </button>
+                    <div
+                      class="hidden absolute right-0 mt-2 bg-white shadow-lg rounded-lg w-40 border border-gray-200 z-50"
+                    >
+                      <button
+                        class="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+                        data-joinCode="<%= workspaceLink.join_code %>"
+                        onclick="copyLink(this)"
+                      >
+                        Copy link
+                      </button>
+                      <form
+                        action="/link/delete/<%= workspaceLink.join_code %>"
+                        method="post"
+                      >
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          onclick="deleteWorkspaceLink(event)"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="flex h-[70%] items-center justify-center">
+          <h1 class="text-zinc-600 font-semibold text-xl">You have no shared workspaces</h1>
+        </div>
+        <% } %>
+      </div>
+      <div class="hidden" id="confirmationMessages">
+        <%= JSON.stringify(locals.confirmationMessages) %>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const notyf = new Notyf();
+
+        document.addEventListener('click', (event) => {
+          const menus = document.querySelectorAll('.relative div:not(.hidden)');
+          menus.forEach((menu) => {
+            if (
+              !menu.contains(event.target) &&
+              !menu.previousElementSibling.contains(event.target)
+            ) {
+              menu.classList.add('hidden');
+            }
+          });
+        });
+
+        const confirmationMessagesHolder = document.querySelector(
+          '#confirmationMessages'
+        );
+        const confirmationMessages = JSON.parse(
+          confirmationMessagesHolder.textContent
+        );
+
+        confirmationMessages.forEach((confirmation) => {
+          if (confirmation.error) {
+            notyf.error(confirmation.msg);
+            return;
+          }
+
+          notyf.success(confirmation.msg);
+        });
+      })();
+
+      function copyLink(btn) {
+        const notyf = new Notyf();
+        const joinCode = btn.getAttribute('data-joinCode');
+
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const link = `${protocol}//${host}/link/${joinCode}`;
+        navigator.clipboard.writeText(link);
+
+        notyf.success('Link copied!');
+      }
+
+      function deleteWorkspaceLink(e) {
+        const parentForm = event.target.closest('form');
+        e.preventDefault();
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'This action cannot be undone!',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            parentForm.submit();
+          }
+        });
+      }
+
+      function toggleMenu(button) {
+        const menu = button.nextElementSibling;
+        const allMenus = document.querySelectorAll(
+          '.relative div:not(.hidden)'
+        );
+        allMenus.forEach((openMenu) => {
+          if (openMenu !== menu) {
+            openMenu.classList.add('hidden');
+          }
+        });
+        menu.classList.toggle('hidden');
+      }
+    </script>
+  </body>
+</html>

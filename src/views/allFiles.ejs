@@ -20,7 +20,7 @@
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {allFiles: true, workspaces:
       locals.workspaces})%>
-      <div class="flex-1 border-2 border-transparent m-2" id="drop-zone">
+      <div class="flex-1 border-2 border-transparent m-2 overflow-auto" id="drop-zone">
         <div>
           <button
             type="button"
@@ -96,12 +96,24 @@
               <div class="w-20 h-20">
                 <img
                   src="<%= {
-                'js': '/images/icons/fileIcons/code.png',
-                'css': '/images/icons/fileIcons/code.png',
-                'html': '/images/icons/fileIcons/code.png',
-                'pdf': '/images/icons/fileIcons/pdf.png',
-                'png': '/images/icons/fileIcons/image.png',
-                'zip': '/images/icons/fileIcons/zip.png'
+                  'js': '/images/icons/fileIcons/code.png',
+                  'css': '/images/icons/fileIcons/code.png',
+                  'html': '/images/icons/fileIcons/code.png',
+                  'php': '/imagesicons/fileIcons/code.png',
+                  'c': '/images/icons/fileIcons/code.png',
+                  'cpp': '/images/icons/fileIcons/code.png',
+                  'png': '/images/icons/fileIcons/image.png',
+                  'svg': '/images/icons/fileIcons/image.png',
+                  'jpeg': '/images/icons/fileIcons/image.png',
+                  'webp': '/images/icons/fileIcons/image.png',
+                  'pdf': '/images/icons/fileIcons/pdf.png',
+                  'ppt': '/images/icons/fileIcons/ppt.png',
+                  'exe': '/images/icons/fileIcons/exe.png',
+                  'xls': '/images/icons/fileIcons/xls.png',
+                  'sql': '/images/icons/fileIcons/sql.png',
+                  'wav': '/images/icons/fileIcons/wav.png',
+                  'docx': '/images/icons/fileIcons/word.png',
+                  'zip': '/images/icons/fileIcons/zip.png',
               }[file.name.split('.').pop()] || '/images/icons/fileIcons/default.png' %>"
                   alt=""
                   class="w-[100%]"
@@ -118,7 +130,7 @@
         </div>
         <%}else{%>
         <div class="flex h-[70%] items-center justify-center">
-          <h1 class="text-zinc-600 font-bold text-2xl">A little to quiet...</h1>
+          <h1 class="text-zinc-600 font-bold text-2xl">Start uploading to your workspaces to see your files/folders</h1>
         </div>
         <%} %>
       </div>
