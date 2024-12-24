@@ -97,7 +97,7 @@ async function viewWorkspaceContentByLink(req, res, next) {
 
 async function downloadWorkspace(req, res, next) {
   const { code } = req.params;
-
+  
   const workspace = await prisma.workspace.findFirst({
     where: {
       workspaceLink: {
