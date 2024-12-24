@@ -107,8 +107,6 @@ async function getWorksapceActivitesPage(req, res) {
     },
   });
 
-  console.log(downloadActivies);
-
   res.render('workspaceActivities', { downloadActivies, uploadActivities });
 }
 
