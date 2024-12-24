@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/main.css" />
-    <title>FILEUP | VIEW <%=workspace.name%></title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css"
+    />
+    <title>FILEUP | view <%=workspace.name%></title>
   </head>
   <body>
     <div class="flex-1 border-2 border-transparent m-2 overflow-auto">
@@ -60,9 +64,21 @@
                 'js': '/images/icons/fileIcons/code.png',
                 'css': '/images/icons/fileIcons/code.png',
                 'html': '/images/icons/fileIcons/code.png',
-                'pdf': '/images/icons/fileIcons/pdf.png',
+                'php': '/imagesicons/fileIcons/code.png',
+                'c': '/images/icons/fileIcons/code.png',
+                'cpp': '/images/icons/fileIcons/code.png',
                 'png': '/images/icons/fileIcons/image.png',
-                'zip': '/images/icons/fileIcons/zip.png'
+                'svg': '/images/icons/fileIcons/image.png',
+                'jpeg': '/images/icons/fileIcons/image.png',
+                'webp': '/images/icons/fileIcons/image.png',
+                'pdf': '/images/icons/fileIcons/pdf.png',
+                'ppt': '/images/icons/fileIcons/ppt.png',
+                'exe': '/images/icons/fileIcons/exe.png',
+                'xls': '/images/icons/fileIcons/xls.png',
+                'sql': '/images/icons/fileIcons/sql.png',
+                'wav': '/images/icons/fileIcons/wav.png',
+                'docx': '/images/icons/fileIcons/word.png',
+                'zip': '/images/icons/fileIcons/zip.png',
               }[file.name.split('.').pop()] || '/images/icons/fileIcons/default.png' %>"
               alt=""
               class="w-[100%]"

@@ -37,16 +37,18 @@
 </div>
 
 <div id="join-code" class="hidden"><%=locals.joinCode%></div>
+<script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+
 <script>
   (() => {
+    const notyf = new Notyf();
     const closeBtn = document.querySelector('#close-workspace-link-btn');
     const workspaceLinkModal = document.querySelector('#workspace-link-modal');
     const copyLinkBtn = document.querySelector('#copy-link-btn');
     const workspaceLinkInput = document.querySelector('#workspace-link-input');
 
     const joinCodeHolder = document.querySelector('#join-code');
-    // Set the input value dynamically
-    const joinCode = joinCodeHolder.textContent; // Replace this with your server-provided joinCode
+    const joinCode = joinCodeHolder.textContent;
     const currentOrigin = window.location.origin;
     const shareUrl = `${currentOrigin}/link/${joinCode}`;
     workspaceLinkInput.value = shareUrl;
@@ -57,14 +59,9 @@
     });
 
     copyLinkBtn.addEventListener('click', () => {
-      navigator.clipboard
-        .writeText(workspaceLinkInput.value)
-        .then(() => {
-          alert('Workspace link copied to clipboard!');
-        })
-        .catch((err) => {
-          console.error('Failed to copy link:', err);
-        });
+      navigator.clipboard.writeText(workspaceLinkInput.value).then(() => {
+        notyf.success('Workspace link copied to clipboard!');
+      });
     });
   })();
 </script>

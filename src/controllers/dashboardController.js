@@ -54,6 +54,27 @@ async function getAllFilesPage(req, res) {
   res.render('allFiles');
 }
 
+async function getSharedWorksapcesPage(req, res) {
+  const confirmationMessages = req.flash('confirmationMessages');
+  const workspacesLinks = await prisma.workspaceLink.findMany({
+    where: {
+      userAdmin: {
+        id: req.user.id,
+      },
+    },
+
+    include: {
+      workspace: true,
+    },
+  });
+
+  res.render('sharedWorkspaces', {
+    workspacesLinks,
+    confirmationMessages,
+  });
+}
+
 module.exports = {
   getAllFilesPage,
+  getSharedWorksapcesPage,
 };

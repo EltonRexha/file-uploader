@@ -128,6 +128,28 @@ async function downloadWorkspace(req, res, next) {
   archive.finalize();
 }
 
+async function deleteWorkspaceLink(req, res) {
+  const { code } = req.params;
+
+  try {
+    await prisma.workspaceLink.delete({
+      where: {
+        join_code: code,
+      },
+    });
+
+    req.flash('confirmationMessages', [
+      { msg: 'Successfuly deleted workspace link', error: false },
+    ]);
+  } catch (e) {
+    req.flash('confirmationMessages', [
+      { msg: 'Failed to delete workspace link', error: true },
+    ]);
+  }
+
+  res.redirect(`/dashboard/sharedWorkspaces/?`);
+}
+
 async function workspaceExistsForUser(workspaceName, userId) {
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -142,7 +164,8 @@ async function workspaceExistsForUser(workspaceName, userId) {
 }
 
 module.exports = {
+  deleteWorkspaceLink,
   createLink,
   viewWorkspaceContentByLink,
-  downloadWorkspace
+  downloadWorkspace,
 };
