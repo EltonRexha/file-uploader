@@ -77,18 +77,6 @@
             </div>
           </div>
         </a>
-        <div class="cursor-pointer">
-          <div class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3">
-            <div class="flex w-5 justify-center items-center">
-              <img
-                src="/images/icons/photos.svg"
-                alt="Photograph"
-                class="w-[100%]"
-              />
-            </div>
-            <p>Photos</p>
-          </div>
-        </div>
         <a href="/dashboard/sharedWorkspaces">
           <div class="cursor-pointer">
             <div
@@ -105,19 +93,22 @@
             </div>
           </div>
         </a>
-
-        <div class="cursor-pointer">
-          <div class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3">
-            <div class="flex w-5 justify-center items-center">
-              <img
-                src="/images/icons/analytics.svg"
-                alt="Analytics"
-                class="w-[100%]"
-              />
+        <a href="/dashboard/activities">
+          <div class="cursor-pointer">
+            <div
+              class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3 <%= locals.workspaceActivities ? 'bg-zinc-200' : '' %>"
+            >
+              <div class="flex w-5 justify-center items-center">
+                <img
+                  src="/images/icons/analytics.svg"
+                  alt="Analytics"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Workspace Activities</p>
             </div>
-            <p>Workspace Activities</p>
           </div>
-        </div>
+        </a>
         <a href="/log-out">
           <div class="cursor-pointer">
             <div class="hover:bg-zinc-200 p-2 rounded-lg flex gap-3">
