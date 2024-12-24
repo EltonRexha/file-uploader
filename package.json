@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon ./src/index.js",
     "watch-build-css": "npx tailwindcss -i ./src/public/css/index.css -o ./src/public/css/main.css --watch",
-    "build": "npx tailwindcss -i ./src/public/css/index.css -o ./src/public/css/main.css && node app.js"
+    "build": "npx tailwindcss -i ./src/public/css/index.css -o ./src/public/css/main.css && node index.js"
   },
   "keywords": [],
   "author": "elton <elton.rexha123@example.com>",
