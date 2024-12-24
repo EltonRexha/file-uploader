@@ -22,7 +22,7 @@
     <div class="flex flex-col h-[90%]">
       <button class="flex flex-col items-center mt-6" id="home-btn">
         <div
-          class="flex cursor-pointer <%= !locals.workspace ? 'bg-zinc-200' : '' %> border-zinc-200 border-2 ml-4 mr-4 justify-center items-center h-10 w-10 rounded-md"
+          class="flex cursor-pointer <%= locals.home ? 'bg-zinc-200' : '' %> border-zinc-200 border-2 ml-4 mr-4 justify-center items-center h-10 w-10 rounded-md"
         >
           <img src="/images/icons/home.svg" alt="Home" class="w-[50%]" />
         </div>
@@ -42,6 +42,17 @@
         <p class="text-xxs text-zinc-700">Workspaces</p>
       </button>
 
+      <% if(locals.role === 'ADMIN'){%>
+      <button class="flex flex-col items-center mt-6" id="admin-btn">
+        <div
+          class="flex cursor-pointer <%= locals.admin ? 'bg-zinc-200' : '' %> border-zinc-200 border-2 ml-4 mr-4 justify-center items-center h-10 w-10 rounded-md"
+        >
+          <img src="/images/icons/admin.svg" alt="admin" class="w-[50%]" />
+        </div>
+        <p class="text-xxs text-zinc-700">Admin</p>
+      </button>
+      <%} %>
+
       <button
         class="flex-col items-center mt-[auto] hidden sm:flex"
         id="hide-sidebar-btn"
@@ -58,7 +69,7 @@
     class="flex-1 w-60 bg-stone-100 border-stone-300 border-r-2 overflow-auto"
     id="sidebar"
   >
-    <div id="home-content" class="<%= locals.workspace ? 'hidden' : 'block' %>">
+    <div id="home-content" class="<%= locals.home ? 'block' : 'hidden' %>">
       <div class="p-4">
         <h1 class="ml-5 mt-3 text-xl font-semibold">Home</h1>
         <a href="/dashboard/home/allFiles">
@@ -149,31 +160,68 @@
         <% }) } %>
       </div>
     </div>
+    <div id="admin-content" class="<%= locals.admin ? 'block' : 'hidden' %>">
+      <div class="p-4">
+        <h1 class="ml-5 mt-6 text-xl font-semibold">administration</h1>
+        <a href="/admin/users">
+          <div class="mt-3 pr-2 pl-2">
+            <div
+              class="hover:bg-zinc-200 p-2 flex gap-3 rounded-lg <%= locals.users ? 'bg-zinc-200' : '' %>"
+            >
+              <div class="flex w-5 justify-center items-center">
+                <img
+                  src="/images/icons/adminUsers.svg"
+                  alt="Workspace"
+                  class="w-[100%]"
+                />
+              </div>
+              <p>Users</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
   const homeBtn = document.querySelector('#home-btn');
   const workspaceBtn = document.querySelector('#workspace-btn');
+  const adminBtn = document.querySelector('#admin-btn');
   const hideSideBarBtn = document.querySelector('#hide-sidebar-btn');
   const sidebar = document.querySelector('#sidebar');
   const homeContent = document.querySelector('#home-content');
   const workspaceContent = document.querySelector('#workspace-content');
+  const adminContent = document.querySelector('#admin-content');
 
   homeBtn.addEventListener('click', () => {
+    adminContent.style.display = 'none';
     workspaceContent.style.display = 'none';
     homeContent.style.display = 'block';
 
     workspaceBtn.querySelector('div').classList.remove('bg-zinc-200');
+    adminBtn.querySelector('div').classList.remove('bg-zinc-200');
     homeBtn.querySelector('div').classList.add('bg-zinc-200');
   });
 
   workspaceBtn.addEventListener('click', () => {
     homeContent.style.display = 'none';
+    adminContent.style.display = 'none';
     workspaceContent.style.display = 'block';
 
     homeBtn.querySelector('div').classList.remove('bg-zinc-200');
+    adminBtn.querySelector('div').classList.remove('bg-zinc-200');
     workspaceBtn.querySelector('div').classList.add('bg-zinc-200');
+  });
+
+  adminBtn.addEventListener('click', () => {
+    homeContent.style.display = 'none';
+    workspaceContent.style.display = 'none';
+    adminContent.style.display = 'block';
+
+    workspaceBtn.querySelector('div').classList.remove('bg-zinc-200');
+    homeBtn.querySelector('div').classList.remove('bg-zinc-200');
+    adminBtn.querySelector('div').classList.add('bg-zinc-200');
   });
 
   hideSideBarBtn.addEventListener('click', () => {

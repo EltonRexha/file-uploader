@@ -19,8 +19,11 @@
 
     <div class="sm:flex">
       <%-include('./partials/sidebar.ejs', {allFiles: true, workspaces:
-      locals.workspaces})%>
-      <div class="flex-1 border-2 border-transparent m-2 overflow-auto" id="drop-zone">
+      locals.workspaces,home: true})%>
+      <div
+        class="flex-1 border-2 border-transparent m-2 overflow-auto"
+        id="drop-zone"
+      >
         <div>
           <button
             type="button"
@@ -130,7 +133,9 @@
         </div>
         <%}else{%>
         <div class="flex h-[70%] items-center justify-center">
-          <h1 class="text-zinc-600 font-bold text-2xl">Start uploading to your workspaces to see your files/folders</h1>
+          <h1 class="text-zinc-600 font-bold text-2xl">
+            Start uploading to your workspaces to see your files/folders
+          </h1>
         </div>
         <%} %>
       </div>

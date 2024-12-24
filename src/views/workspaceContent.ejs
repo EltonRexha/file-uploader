@@ -202,7 +202,7 @@
             >
               <img src="/images/icons/dots.svg" alt="" class="w-full" />
             </button>
-            <div class="w-20 h-20 cursor-pointer">
+            <div class="w-20 h-20">
               <img
                 src="<%= {
                   'js': '/images/icons/fileIcons/code.png',
@@ -267,6 +267,9 @@
         <%} %>
       </div>
     </div>
+    <div id="upload_errors" class="hidden">
+      <%=JSON.stringify(locals.uploadErrors)%>
+    </div>
 
     <script>
       (() => {
@@ -275,6 +278,13 @@
         const uploadBtn = document.querySelector('#upload-btn');
         const fileInput = document.querySelector('#file-input');
         const uploadForm = document.querySelector('#upload-form');
+        const uploadErrorsHolder = document.querySelector('#upload_errors');
+
+        const uploadErrors = JSON.parse(uploadErrorsHolder.textContent);
+
+        uploadErrors.forEach((error) => {
+          notyf.error(error.msg);
+        });
 
         uploadBtn.addEventListener('click', (e) => {
           fileInput.click();
