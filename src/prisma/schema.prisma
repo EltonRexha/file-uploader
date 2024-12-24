@@ -90,13 +90,15 @@ model Activity {
   id          String       @id @default(uuid())
   activity    ActivityType
   workspace   Workspace    @relation(fields: [workspaceId], references: [id])
-  user        User         @relation(fields: [userId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
   folder      Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
   file        File?        @relation(fields: [fileId], references: [id], onDelete: SetNull)
-  userId      String       @map("user_id")
+  userId      String?      @map("user_id")
   workspaceId String       @map("workspace_id")
   folderId    String?      @map("folder_id")
   fileId      String?      @map("file_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   @@map("activities")
 }

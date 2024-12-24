@@ -74,7 +74,46 @@ async function getSharedWorksapcesPage(req, res) {
   });
 }
 
+async function getWorksapceActivitesPage(req, res) {
+  const downloadActivies = await prisma.activity.findMany({
+    where: {
+      activity: 'DOWNLOAD',
+      workspace: {
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+    include: {
+      workspace: true,
+      user: true
+    }
+  });
+
+  const uploadActivities = await prisma.activity.findMany({
+    where: {
+      activity: 'UPLOAD',
+      workspace: {
+        user: {
+          id: req.user.id,
+        },
+      },
+    },
+    include: {
+      folder: true,
+      file: true,
+      user: true,
+      workspace: true,
+    },
+  });
+
+  console.log(downloadActivies);
+
+  res.render('workspaceActivities', { downloadActivies, uploadActivities });
+}
+
 module.exports = {
   getAllFilesPage,
   getSharedWorksapcesPage,
+  getWorksapceActivitesPage,
 };

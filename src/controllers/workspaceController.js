@@ -358,6 +358,22 @@ async function downloadWorkspace(req, res, next) {
 
   await downloadFolderHelper('/', workspace, archive);
 
+  await prisma.activity.create({
+    data: {
+      activity: 'DOWNLOAD',
+      workspace: {
+        connect: {
+          id: workspace.id,
+        },
+      },
+      user: {
+        connect: {
+          id: req.user.id,
+        },
+      },
+    },
+  });
+
   archive.finalize();
 }
 
