@@ -31,6 +31,13 @@ passport.use(
           return;
         }
 
+        if (user.status === 'BANNED') {
+          done(null, false, {
+            message: 'User has been banned',
+          });
+          return;
+        }
+
         done(null, user);
       } catch (e) {
         done(e);
