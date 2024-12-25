@@ -148,10 +148,10 @@
                     <%= activity.user.email %>
                   </td>
                   <td class="py-3 px-4 text-gray-700">
-                    <%= activity.folder.path %>
+                    <%= activity.folder ? activity.folder.path : '[Deleted]' %>
                   </td>
                   <td class="py-3 px-4 text-gray-700">
-                    <%= activity.file.name %>
+                    <%= activity.file ? activity.file.name : '[Deleted]' %>
                   </td>
                   <td class="py-3 px-4 text-gray-700">
                     <%= activity.createdAt.toLocaleString('en-GB', { hour12:
